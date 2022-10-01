@@ -242,7 +242,56 @@ def p_m_exp(t):
     '''
     m_exp : t m_exp_1
     '''
+    
+def p_m_exp_1(t):
+    '''
+    m_exp_1 : t m_exp_2 m_exp
+    '''
 
+def p_m_exp_2(t):
+    '''
+    m_exp_2: PLUS | MINUS
+    '''
+    
+def p_t(t):
+    '''
+    t : f t_1
+    '''
+    
+def p_t_1(t):
+    '''
+    t_1 : t_2 t
+    '''
+
+def p_t_2(t):
+    '''
+    t_2: MULTIPLY | DIVIDE | MOD
+    '''
+
+def p_f(t):
+    '''
+    f: f_1 | f_2 | f_3 |f_4
+    '''
+    
+def p_f_1(t):
+    '''
+    f_1: LPAREN exp RPAREN
+    '''
+
+def p_f_2(t):
+    '''
+    f_2: const_i | const_f | const_b | const_s
+    '''
+    
+def p_f_3(t):
+    '''
+    f_3: variable
+    '''
+    
+def p_f_4(t):
+    '''
+    f_4: llamada
+    '''
 
 def p_epsilon(t):
     'epsilon :'
