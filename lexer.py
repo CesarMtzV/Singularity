@@ -6,7 +6,8 @@ tokens = (
     'INPUT', 'OUTPUT', 'WHILE', 'FOR', 'PI', 'IF', 'ELSE', 'SEMICOLON',
     'COLON', 'COMMA', 'LCURLY', 'RCURLY', 'ASSIGN', 'LPAREN','RPAREN',
     'LBRACKET', 'RBRACKET', 'AND', 'OR', 'CLASS', 'TRUE', 'FALSE',
-    'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN',
+    'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
+    'COUT', 'CIN',
     'GREATER_THAN', 'LESS_THAN_OR_EQUAL', 'GREATER_THAN_OR_EQUAL', 'EQUAL',
     'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING',
 )
@@ -45,15 +46,17 @@ t_LBRACKET                  = r'\['
 t_RBRACKET                  = r'\]'
 t_ASSIGN                    = r'\='
 t_PLUS                      = r'\+'
-t_MINUS                     = r'-'
+t_MINUS                     = r'\-'
 t_MULTIPLY                  = r'\*'
 t_DIVIDE                    = r'/'
-t_POWER                     = r'^'
+t_POWER                     = r'\^'
 t_MOD                       = r'%'
 t_LESS_THAN                 = r'\<'
 t_GREATER_THAN              = r'\>'
 t_GREATER_THAN_OR_EQUAL     = r'\>\='
 t_LESS_THAN_OR_EQUAL        = r'\<\='
+t_COUT                      = r'\<\<'
+t_CIN                       = r'\>\>'
 t_EQUAL                     = r'\=\='
 t_NOT_EQUAL                 = r'\!\='
 t_AND                       = r'\&\&'
@@ -87,4 +90,4 @@ def t_error(t):
     t.lexer.skip(1)
 
 # Build the lexer
-lex.lex()
+lexer = lex.lex()
