@@ -6,7 +6,7 @@ from lexer import tokens
 # AGREGAR EL CUERPO DESPUES DE PROGRAMA_1
 def p_programa(t):
     '''
-    programa    : programa_1 
+    programa    : programa_1 cuerpo
     '''
 
 def p_programa_1(t):
@@ -63,64 +63,67 @@ def p_tipo_compuesto(t):
 
 # REGLA CUERPO
 
-# def p_cuerpo(t):
-#     '''
-#     cuerpo      :  cuerpo_1 funcion_main
-#     '''
+def p_cuerpo(t):
+    '''
+    cuerpo      :  cuerpo_1 funcion_main
+    '''
 
-# def p_cuerpo_1(t):
-#     '''
-#     cuerpo_1    : funciones 
-#                 | epsilon
-#     '''
+def p_cuerpo_1(t):
+    '''
+    cuerpo_1    : funciones 
+                | epsilon
+    '''
 
 # REGLAS FUNCIONES (FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS)
-# def p_funcion_main(t):
-#     '''
-#     funcion_main: MAIN LPAREN RPAREN LCURLY RCURLY
-#     '''
+def p_funcion_main(t):
+    '''
+    funcion_main : MAIN LPAREN RPAREN LCURLY RCURLY
+    '''
 
-# def p_funciones(t):
-#     '''
-#     funciones   : funcion_tipo funciones_1
-#                 | funcion_void funciones_1
-#     '''
+def p_funciones(t):
+    '''
+    funciones   : funcion_tipo funciones_1
+                | funcion_void funciones_1
+    '''
 
-# def p_funciones_1(t):
-#     '''
-#     funciones_1 : funciones
-#                 | epsilon
-#     '''
+def p_funciones_1(t):
+    '''
+    funciones_1 : funciones
+                | epsilon
+    '''
 
 # # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
-# def p_funcion_tipo(t):
-#     '''
-#     funcion_tipo: FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY RETURN RCURLY
-#     '''
+def p_funcion_tipo(t):
+    '''
+    funcion_tipo : FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY RETURN RCURLY
+    '''
 
-# def p_funcion_void(t):
-#     '''
-#     funcion_void: FUNCTION VOID ID LPAREN params RPAREN LCURLY RCURLY
-#     '''
+def p_funcion_void(t):
+    '''
+    funcion_void : FUNCTION VOID ID LPAREN params RPAREN LCURLY RCURLY
+    '''
 
 # # REGLA PARAMS
-# def p_params(t):
-#     '''
-#     params      : tipo_simple ID params_1
-#     '''
+def p_params(t):
+    '''
+    params      : tipo_simple ID params_1 
+                | epsilon
+    '''
 
-# def p_params_1(t):
-#     '''
-#     params_1    : COMMA params
-#                 | epsilon
-#     '''
+def p_params_1(t):
+    '''
+    params_1    : COMMA params
+                | epsilon
+    '''
 
 def p_epsilon(t):
-    'epsilon :'
+    'epsilon : '
     pass
 
 def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+    print("Syntax error")
+# def p_error(t):
+#     print("Syntax error at '%s'" % t.value)
 
 yacc.yacc()
 

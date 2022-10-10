@@ -7,7 +7,7 @@ tokens = (
     'COLON', 'COMMA', 'LCURLY', 'RCURLY', 'ASSIGN', 'LPAREN','RPAREN',
     'LBRACKET', 'RBRACKET', 'AND', 'OR', 'CLASS', 'TRUE', 'FALSE',
     'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
-    'COUT', 'CIN',
+    'COUT', 'CIN', 'MAIN',
     'GREATER_THAN', 'LESS_THAN_OR_EQUAL', 'GREATER_THAN_OR_EQUAL', 'EQUAL',
     'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING',
 )
@@ -15,6 +15,7 @@ tokens = (
 t_ignore = ' \t'
 
 reserved = {
+    'main': 'MAIN',
     'int': 'INT',
     'float': 'FLOAT',
     'bool': 'BOOL',
