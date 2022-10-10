@@ -22,18 +22,19 @@ def p_bloque(t):
 def p_bloque_1(t):
     '''
     bloque_1 : estatuto bloque_1 
-        | epsilon
+            | epsilon
     '''
 
 def p_vars(t):
     '''
     vars : tipo_compuesto ID vars_1 SEMICOLON vars_4
-        | tipo_simple ID vars_2
+         | tipo_simple ID vars_2
     '''
 
 def p_vars_1(t):
     '''
-    vars_1 : COMMA | epsilon
+    vars_1 : COMMA 
+           | epsilon
     '''
 
 def p_vars_2(t):
@@ -157,8 +158,8 @@ def p_escritura_2(t):
 
 def p_escritura_3(t):
     '''
-    escritura_3: escritura_1
-        | epsilon
+    escritura_3 : escritura_1
+                | epsilon
     '''
 
 def p_condicion(t):
@@ -250,7 +251,8 @@ def p_m_exp_1(t):
 
 def p_m_exp_2(t):
     '''
-    m_exp_2: PLUS | MINUS
+    m_exp_2 : PLUS
+            | MINUS
     '''
     
 def p_t(t):
@@ -265,32 +267,40 @@ def p_t_1(t):
 
 def p_t_2(t):
     '''
-    t_2: MULTIPLY | DIVIDE | MOD
+    t_2 : MULTIPLY 
+        | DIVIDE 
+        | MOD
     '''
 
 def p_f(t):
     '''
-    f: f_1 | f_2 | f_3 |f_4
+    f : f_1 
+      | f_2 
+      | f_3 
+      | f_4
     '''
     
 def p_f_1(t):
     '''
-    f_1: LPAREN exp RPAREN
+    f_1 : LPAREN exp RPAREN
     '''
 
 def p_f_2(t):
     '''
-    f_2: const_i | const_f | const_b | const_s
+    f_2 : const_i 
+        | const_f 
+        | const_b 
+        | const_s
     '''
     
 def p_f_3(t):
     '''
-    f_3: variable
+    f_3 : variable
     '''
     
 def p_f_4(t):
     '''
-    f_4: llamada
+    f_4 : llamada
     '''
 
 def p_epsilon(t):
