@@ -1,0 +1,13 @@
+program TestError;
+var
+   x,y:int;
+   z:float;
+{
+   x == 1;
+   y = 2;
+   z = (x+y*3)/4;
+   if (z > "hola") {
+      print("hola mundo",(x+y));
+   }
+}
+
