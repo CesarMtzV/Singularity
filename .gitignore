@@ -6,6 +6,8 @@ __pycache__/
 # Compiler stuff
 ply/
 *.sgy
+parsetab.py
+parser.out
 
 # C extensions
 *.so

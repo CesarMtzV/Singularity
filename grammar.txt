@@ -1,0 +1,219 @@
+programa    : programa_1 cuerpo
+programa_1  : vars 
+                | epsilon
+
+vars        : tipo_simple ID vars_1
+                | tipo_compuesto ID SEMICOLON vars_4
+vars_1      : SEMICOLON vars_4 
+                | vars_2
+vars_2      : LBRACKET VAR_CONST_INT RBRACKET vars_3
+vars_3      : LBRACKET VAR_CONST_INT RBRACKET SEMICOLON vars_4 
+                | SEMICOLON vars_4
+vars_4      : vars 
+                | epsilon
+
+tipo_simple : INT | FLOAT | BOOL | STRING
+
+tipo_compuesto : ID
+
+cuerpo      : cuerpo_1 funcion_main
+cuerpo_1    : funciones 
+                | epsilon
+
+------> AQUI FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY
+funcion_main: MAIN LPAREN RPAREN LCURLY RCURLY
+
+funciones   : funcion_tipo funciones_1
+                | funcion_void funciones_1
+funciones_1 : funciones
+                | epsilon
+
+------> AQUI FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY
+funcion_tipo: FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY RETURN RCURLY
+
+funcion_void: FUNCTION VOID ID LPAREN params RPAREN LCURLY RCURLY
+
+params      : tipo_simple ID params_1
+params_1    : COMMA params
+                | epsilon
+
+bloque      : estatuto bloque_1
+bloque_1    : bloque
+                | epsilon
+
+--------> FALTA AGREGAR EL RESTO DE ESTATUTOS
+estatuto    : asigna
+                | llamada
+
+asigna      : ID ASSIGN exp SEMICOLON
+
+llamada     : ID LPAREN llamada_1 RPAREN SEMICOLON
+llamada_1   : llamada_2
+                | epsilon
+llamada_2   : exp llamada_3
+llamada_3   : COMMA llamada_2
+                | epsilon
+
+exp         : t_exp exp_1
+exp_1       : OR exp
+                | epsilon
+
+t_exp       : g_exp t_exp_1
+t_exp_1     : AND t_exp
+                | epsilon
+
+g_exp       : m_exp g_exp_1
+g_exp_1     : g_exp_2 m_exp
+                | epsilon
+g_exp_2     : GREATER_THAN
+                | LESS_THAN
+                | GREATER_THAN_OR_EQUAL
+                | LESS_THAN_OR_EQUAL
+                | NOT_EQUAL
+                | EQUAL
+
+m_exp       : termino m_exp_1
+m_exp_1     : PLUS m_exp
+                | MINUS m_exp
+                | epsilon
+
+termino     : factor termino_1
+termino_1   : MULTIPLY termino
+                | DIVIDE termino
+                | MOD termino
+                | epsilon
+
+factor      : factor_1 factor_2 factor_3 factor_4
+factor_1    : LAPREN exp RPAREN
+                | epsilon
+factor_2    : VAR_CONST_INT
+                | VAR_CONST_FLOAT
+                | VAR_CONST_STRING
+                | TRUE
+                | FALSE
+                | epsilon
+factor_3    : variable
+                | epsilon
+factor_4    : llamada
+                | epsilon
+
+variable    : id variable_1
+variable_1  : LBRACKET exp RBRACKET variable_2
+                | epsilon
+variable_2  : LBRACKET exp RBRACKET
+                | epsilon
+
+
+---------------------------------------------------------------------------------------------------------
+PROGRAMA → PROGRAMA´ CUERPO
+PROGRAMA’ → VARS | epsilon
+
+CUERPO   : cuerpo_1 funcion_main
+cuerpo_1 : funciones | epsilon
+
+funciones : function | function void
+
+BLOQUE → ESTATUTO BLOQUE'
+
+BLOQUE' : ESTATUTO BLOQUE' | epsilon
+
+
+VARS : TIPO_COMPUESTO id VARS' SEMICOLON VARS’’’’
+          | TIPO_SIMPLE id VARS''
+
+VARS' : COMMA | epsilon
+
+VARS'' : LBRACKET VAR_CONST_INT RBRACKET VARS''' SEMICLON VARS''''
+
+VARS''' : LBRACKET VAR_CONST_INT RBRACKET
+            | epsilon
+
+VARS'''' : VARS | epsilon
+
+TIPO_SIMPLE → int | float | bool | string
+
+TIPO_COMPUESTO → id 
+
+VAR_CONST → const_i | const_f | const_b | const_s | id
+
+ESTATUTO → ASIGNA | LLAMADA | LECTURA | ESCRITURA | CONDICION | CICLO_W | CICLO_F | FUNC_ESP
+
+FUNCTION_VOID → function void id LEFT_PARENTHESIS PARAMS RIGHT_PARENTHESIS LEFT_CURLY VARS BLOQUE return EXP SEMICOLON RIGHT_CURLY
+
+FUNCTION → function TIPO_SIMPLE id LEFT_PARENTHESIS PARAMS RIGHT_PARENTHESIS LEFT_CURLY VARS BLOQUE return EXP SEMICOLON RIGHT_CURLY
+
+FUNCION_MAIN → main LEFT_PARENTHESIS RIGHT_PARENTHESIS LEFT_CURLY BLOQUE RIGHT_CURLY
+
+PARAMS → TIPO_SIMPLE id PARAMS’
+
+PARAMS’ → COMMA PARAMS | €
+
+ASIGNA → id ASSIGN EXP SEMI_COLON
+
+LLAMADA → id LPAREN LLAMADA_1 RPAREN SEMICOLON
+
+LLAMADA_1 → LLAMADA_2 | €
+
+LLAMADA_2→ LLAMADA LLAMADA_3
+
+LLAMADA_3 → COMMA LLAMADA_2 | €
+
+LECTURA→ input CIN VARIABLE SEMICOLON
+
+ESCRITURA→ output ESCRITURA’ SEMICOLON
+
+ESCRITURA’→ COUT ESCRITURA’’
+
+ESCRITURA’’→ EXP ESCRITURA’’’ | letrero ESCRITURA’’’
+
+ESCRITURA’’’ → ESCRITURA’|€
+
+CONDICION : IF LPAREN EXP RPAREN RPAREN LCURLY BLOQUE RCURLY CONDICION_1
+
+CONDICION_1 : ELSE LCURLY BLOQUE RCURLY | epsilon
+
+CICLO_W : WHILE LPAREN EXP RPAREN LCURLY BLOQUE RCURLY
+
+CICLO_F : FOR LAPREN id IN RANGE LPAREN CONST_INT COMMA CONST_INT RPAREN RPAREN LCURLY BLOQUE RCURLY
+
+VARIABLE : id VARIABLE_1
+
+VARIABLE_1 : LBRACKET EXP RBRACKET VARIABLE_2
+
+VARIABLE_2 :  LBRACKET EXP RBRACKET VARIABLE_2 | epsilon
+
+EXP : T_EXP EXP_1
+
+EXP_1 : OR EXP
+
+T_EXP : G_EXP T_EXP_1
+
+T_EXP_1 : AND T_EXP
+
+G_EXP : M_EXP G_EXP_1
+
+G_EXP_1 : G_EXP_2 M_EXP
+
+G_EXP_2 : GREATER_THAN | LESS_THAN | GREATER_THAN_OR_EQUAL | LESS_THAN_OR_EQUAL | NOT_EQUAL | EQUAL
+
+M_EXP: T M_EXP_1
+
+M_EXP_1: M_EXP_2 M_EXP
+
+M_EXP_2 : PLUS | MINUS
+
+T : F T_1
+
+T_1 : T_2 T
+
+T_2 : MULTIPLY | DIVIDE | MOD
+
+F : F_1 | F_2| F_3 | F_4
+
+F_1 : LPAREN EXPRESION RPAREN
+
+F_2 : const_i | const_f | const_b | const_s
+
+F_3 : VARIABLE
+
+F_4 : LLAMADA
