@@ -95,15 +95,15 @@ def p_funciones_1(t):
 # # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
 def p_funcion_tipo(t):
     '''
-    funcion_tipo : FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY RETURN RCURLY
+    funcion_tipo : FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY bloque RETURN RCURLY
     '''
 
 def p_funcion_void(t):
     '''
-    funcion_void : FUNCTION VOID ID LPAREN params RPAREN LCURLY RCURLY
+    funcion_void : FUNCTION VOID ID LPAREN params RPAREN LCURLY bloque RCURLY
     '''
 
-# # REGLA PARAMS
+# REGLA PARAMS
 def p_params(t):
     '''
     params      : tipo_simple ID params_1 
@@ -116,14 +116,237 @@ def p_params_1(t):
                 | epsilon
     '''
 
+def p_bloque(t):
+    '''
+    bloque      : estatuto bloque_1
+    '''
+
+def p_bloque_1(t):
+    '''
+    bloque_1    : bloque
+                | epsilon
+    '''
+
+# TODO: EL RESTO DE LOS ESTATUTOS
+def p_estatuto(T):
+    '''
+    estatuto    : asigna
+                | llamada
+                | lectura
+                | escritura
+                | condicion
+                | ciclo_w
+                | ciclo_f
+    '''
+
+def p_asigna(t):
+    '''
+    asigna      : ID ASSIGN exp SEMICOLON
+    '''
+
+def p_llamada(t):
+    '''
+    llamada     : ID LPAREN llamada_1 RPAREN SEMICOLON
+    '''
+
+def p_llamada_1(t):
+    '''
+    llamada_1   : llamada_2
+                | epsilon
+    '''
+
+def p_llamada_2(t):
+    '''
+    llamada_2   : exp llamada_3
+    '''
+
+def p_llamada_3(t):
+    '''
+    llamada_3   : COMMA llamada_2
+                | epsilon
+    '''
+
+def p_lectura(t):
+    '''
+    lectura : INPUT CIN variable SEMICOLON
+    '''
+
+def p_escritura(t):
+    '''
+    escritura : OUTPUT escritura_1 SEMICOLON
+    '''
+
+def p_escritura_1(t):
+    '''
+    escritura_1 : COUT escritura_2 escritura_3
+    '''
+
+def p_escritura_2(t):
+    '''
+    escritura_2 : exp
+                | VAR_CONST_STRING
+    '''
+
+def p_escritura_3(t):
+    '''
+    escritura_3 : escritura_1
+                | epsilon
+    '''
+
+def p_condicion(t):
+    '''
+    condicion : IF LPAREN exp RPAREN LCURLY bloque RCURLY condicion_1
+    '''
+
+def p_condicion_1(t):
+    '''
+    condicion_1 : ELSE LCURLY bloque RCURLY
+                | epsilon
+    '''
+
+def p_ciclo_w(t):
+    '''
+    ciclo_w : WHILE LPAREN exp RPAREN LCURLY bloque RCURLY
+    '''
+
+def p_ciclo_f(t):
+    '''
+    ciclo_f : FOR LPAREN ID IN RANGE LPAREN VAR_CONST_INT COMMA VAR_CONST_INT RPAREN RPAREN LCURLY bloque RCURLY
+    '''
+
+# REGLA DE EXPRESION
+def p_exp(t):
+    '''
+    exp         : t_exp exp_1
+    '''
+
+def p_exp_1(t):
+    '''
+    exp_1       : OR exp
+                | epsilon
+    '''
+
+# REGLA DE TERA EXPRESION
+def p_t_exp(t):
+    '''
+    t_exp       : g_exp t_exp_1
+    '''
+
+def p_t_exp_1(t):
+    '''
+    t_exp_1     : AND t_exp
+                | epsilon
+    '''
+
+# REGLA DE GIGA EXPRESION
+def p_g_exp(t):
+    '''
+    g_exp       : m_exp g_exp_1
+    '''
+
+def p_g_exp_1(t):
+    '''
+    g_exp_1     : g_exp_2 m_exp
+                | epsilon
+    '''
+
+def p_g_exp_2(t):
+    '''
+    g_exp_2     : GREATER_THAN
+                | LESS_THAN
+                | GREATER_THAN_OR_EQUAL
+                | LESS_THAN_OR_EQUAL
+                | NOT_EQUAL
+                | EQUAL
+    '''
+
+# REGLAS DE MEGA EXPRESION
+def p_m_exp(t):
+    '''
+    m_exp       : termino m_exp_1
+    '''
+
+def p_m_exp_1(t):
+    '''
+    m_exp_1     : PLUS m_exp
+                | MINUS m_exp
+                | epsilon
+    '''
+
+# REGLAS DE TERMINO
+def p_termino(t):
+    '''
+    termino     : factor termino_1
+    '''
+
+def p_termino_1(t):
+    '''
+    termino_1   : MULTIPLY termino
+                | DIVIDE termino
+                | MOD termino
+                | epsilon
+    '''
+
+# REGLAS DE FACTOR
+def p_factor(t):
+    '''
+    factor      : factor_1 factor_2 factor_3 factor_4
+    '''
+
+def p_factor_1(t):
+    '''
+    factor_1    : LPAREN exp RPAREN
+                    | epsilon
+    '''
+
+def p_factor_2(t):
+    '''
+    factor_2    : VAR_CONST_INT
+                | VAR_CONST_FLOAT
+                | VAR_CONST_STRING
+                | FALSE
+                | TRUE
+                | epsilon
+    '''
+
+def p_factor_3(t):
+    '''
+    factor_3    : variable
+                | epsilon
+    '''
+
+def p_factor_4(t):
+    '''
+    factor_4    : llamada
+                | epsilon
+    '''
+
+# REGLAS DE VARIABLE
+def p_variable(t):
+    '''
+    variable    : ID variable_1
+    '''
+
+def p_variable_1(t):
+    '''
+    variable_1  : LBRACKET exp RBRACKET variable_2
+                | epsilon
+    '''
+
+def p_variable_2(t):
+    '''
+    variable_2  : LBRACKET exp RBRACKET
+                | epsilon
+    '''
+
 def p_epsilon(t):
     'epsilon : '
     pass
 
 def p_error(t):
-    print("Syntax error")
-# def p_error(t):
-#     print("Syntax error at '%s'" % t.value)
+    # print("Syntax error") 
+    print("Syntax error at '%s'" % t.value)
+
 
 yacc.yacc()
 
