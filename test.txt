@@ -1,13 +1,14 @@
-program TestError;
-var
-   x,y:int;
-   z:float;
-{
-   x == 1;
-   y = 2;
-   z = (x+y*3)/4;
-   if (z > "hola") {
-      print("hola mundo",(x+y));
-   }
-}
+int x;
+int x[10];
+int x[50][10];
+float y;
+bool z;
+string s;
+Student s1;
+Student s1;
 
+function int prueba(){return}
+function int prueba2(int x, float b){return}
+function void prueba3(){}
+
+main(){}

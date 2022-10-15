@@ -1,6 +1,17 @@
 import sys
 import ply.yacc as yacc
+
 from lexer import tokens
+
+vars_table = {} # Variables Table
+
+# Variables
+programName = ''
+currentFunction = ''
+currentFunctionType = ''
+currentVar = ''
+currentType = ''
+currentArrayTam = 0
 
 # REGLA PROGRAMA
 # AGREGAR EL CUERPO DESPUES DE PROGRAMA_1
@@ -19,8 +30,8 @@ def p_programa_1(t):
 
 def p_vars(t):
     '''
-    vars        : tipo_simple ID vars_1
-                | tipo_compuesto ID SEMICOLON vars_4
+    vars        : tipo_simple ID np_add_variable vars_1
+                | tipo_compuesto ID np_add_variable SEMICOLON vars_4
     '''
 
 def p_vars_1(t):
@@ -95,18 +106,18 @@ def p_funciones_1(t):
 # # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
 def p_funcion_tipo(t):
     '''
-    funcion_tipo : FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY RETURN RCURLY
+    funcion_tipo : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY RETURN RCURLY
     '''
 
 def p_funcion_void(t):
     '''
-    funcion_void : FUNCTION VOID ID LPAREN params RPAREN LCURLY RCURLY
+    funcion_void : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY RCURLY
     '''
 
 # # REGLA PARAMS
 def p_params(t):
     '''
-    params      : tipo_simple ID params_1 
+    params      : tipo_simple ID np_function_parameters params_1 
                 | epsilon
     '''
 
@@ -125,6 +136,54 @@ def p_error(t):
 # def p_error(t):
 #     print("Syntax error at '%s'" % t.value)
 
+#### euralgic Points
+# Adding a function to the functions directory
+def p_np_add_function(p):
+    'np_add_function :'
+    global currentFunction, currentFunctionType
+
+    currentFunction = p[-1]
+    if currentFunction not in vars_table:
+        vars_table[currentFunction] = {'type': currentFunctionType, 'vars': {}}
+    else:
+        print(f'Function \'{currentFunction}\' has already beendeclared!')
+
+# Adding a function's parameters to its symbol table
+def p_np_function_parameters(p):
+    'np_function_parameters :'
+    global currentFunction, currentVar, currentType
+
+    currentVar = p[-1]
+
+    if currentVar not in vars_table[currentFunction]['vars']:
+        vars_table[currentFunction]['vars'][currentVar] = {'type': currentType}
+    else:
+        print(f'Variable \'{currentVar}\' has already been declared!')
+        
+# Adding a variable to the symbols table
+def p_np_add_variable(p):
+    'np_add_variable :'
+    global currentType, currentVar
+
+    currentVar = p[-1]
+    
+    if currentVar not in vars_table[currentFunction]['vars']:
+        vars_table[currentFunction]['vars'][currentVar] = {'type': currentType}
+    else:
+        print(f'Variable \'{currentVar}\' has already been declared!')
+        
+# Adding a variable to the symbols table
+def p_np_add_variable_global(p):
+    'np_add_variable_global :'
+    global currentType, currentVar
+
+    currentVar = p[-1]
+    
+    if currentVar not in vars_table['global']['vars']:
+        vars_table['global']['vars'][currentVar] = {'type': currentType}
+    else:
+        print(f'Variable \'{currentVar}\' has already been declared!')
+        
 yacc.yacc()
 
 if __name__ == '__main__':
