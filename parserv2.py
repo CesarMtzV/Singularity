@@ -1,9 +1,12 @@
 import sys
 import ply.yacc as yacc
+
 from lexer import tokens
+from varsTable import VariablesTable
+
+vars_table = VariablesTable()
 
 # REGLA PROGRAMA
-# AGREGAR EL CUERPO DESPUES DE PROGRAMA_1
 def p_programa(t):
     '''
     programa    : programa_1 cuerpo
@@ -19,8 +22,8 @@ def p_programa_1(t):
 
 def p_vars(t):
     '''
-    vars        : tipo_simple ID vars_1
-                | tipo_compuesto ID SEMICOLON vars_4
+    vars        : tipo_simple ID np_add_variable vars_1
+                | tipo_compuesto ID np_add_variable SEMICOLON vars_4
     '''
 
 def p_vars_1(t):
@@ -95,18 +98,19 @@ def p_funciones_1(t):
 # # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
 def p_funcion_tipo(t):
     '''
-    funcion_tipo : FUNCTION tipo_simple ID LPAREN params RPAREN LCURLY bloque RETURN RCURLY
+    funcion_tipo : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY RETURN RCURLY
     '''
 
 def p_funcion_void(t):
     '''
-    funcion_void : FUNCTION VOID ID LPAREN params RPAREN LCURLY bloque RCURLY
+
+    funcion_void : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY RCURLY
     '''
 
 # REGLA PARAMS
 def p_params(t):
     '''
-    params      : tipo_simple ID params_1 
+    params      : tipo_simple ID np_function_parameters params_1 
                 | epsilon
     '''
 
@@ -344,10 +348,33 @@ def p_epsilon(t):
     pass
 
 def p_error(t):
-    # print("Syntax error") 
     print("Syntax error at '%s'" % t.value)
 
 
+##########################
+### PUNTOS NEURALGICOS ###
+##########################
+
+# Adding a function to the functions directory
+def p_np_add_function(p):
+    'np_add_function :'
+    vars_table.add_function(p)
+
+# Adding a function's parameters to its symbol table
+def p_np_function_parameters(p):
+    'np_function_parameters :'
+    vars_table.add_function_parameters(p)
+        
+# Adding a variable to the symbols table
+def p_np_add_variable(p):
+    'np_add_variable :'
+    vars_table.add_local_variable(p)
+        
+# Adding a variable to the symbols table
+def p_np_add_variable_global(p):
+    'np_add_variable_global :'
+    vars_table.add_global_variable(p)
+        
 yacc.yacc()
 
 if __name__ == '__main__':
