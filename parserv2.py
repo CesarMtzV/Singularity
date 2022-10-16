@@ -82,6 +82,7 @@ def p_funcion_main(t):
     '''
     funcion_main : MAIN LPAREN RPAREN LCURLY bloque RCURLY
     '''
+    print(vars_table.vars_table)
 
 def p_funciones(t):
     '''
@@ -143,6 +144,7 @@ def p_estatuto(T):
                 | ciclo_f
     '''
 
+# TODO: ID puede ser un arreglo, una matriz, atributo de una clase, etc... Hay que adaptarlo
 def p_asigna(t):
     '''
     asigna      : ID ASSIGN exp SEMICOLON
@@ -348,7 +350,10 @@ def p_epsilon(t):
     pass
 
 def p_error(t):
-    print("Syntax error at '%s'" % t.value)
+    if not t:
+        print("Syntax error: Unexpected END OF FILE")
+    else:
+        print(f"Syntax error: Unexpected {t.type}({t.value}) on line {t.lineno} ")
 
 
 ##########################

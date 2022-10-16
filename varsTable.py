@@ -70,39 +70,6 @@ class VariablesTable:
                 }
             else:
                 raise VarsTableException(f"Local variable '{current_var}' already exists")
-        
-        print("VARS_TABLE (ADD VARIABLE):")
-        print(self.vars_table)
-
-    # def add_global_variable(self, p):
-    #     """Agregar una variable global a la tabla de simbolos"""
-
-    #     self.current_var = p[-1]
-
-    #     if self.current_var not in self.vars_table["global"]["vars"]:
-    #         self.vars_table["global"]["vars"][self.current_var] = {
-    #             "type": self.current_type
-    #         }
-    #     else:
-    #         raise VarsTableException(
-    #             f"Global variable '{self.current_var}' has already been declared!"
-    #         )
-
-    # def add_local_variable(self, p):
-    #     """Agregar una variable local a la tabla de simbolos"""
-
-    #     self.current_var = p[-1]
-
-    #     print(self.current_var)
-    #     print(self.vars_table)
-    #     if self.current_var not in self.vars_table[self.current_function]["vars"]:
-    #         self.vars_table["global"]["vars"][self.current_var] = {
-    #             "type": self.current_type
-    #         }
-    #     else:
-    #         raise VarsTableException(
-    #             f"Global variable '{self.current_var}' has already been declared!"
-    #         )
 
 
 class VarsTableException(Exception):
