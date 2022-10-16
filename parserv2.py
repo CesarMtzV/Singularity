@@ -18,6 +18,19 @@ def p_programa_1(t):
                 | epsilon
     '''
 
+# REGLA CUERPO
+
+def p_cuerpo(t):
+    '''
+    cuerpo      :  cuerpo_1 funcion_main
+    '''
+
+def p_cuerpo_1(t):
+    '''
+    cuerpo_1    : np_end_global_scope funciones 
+                | epsilon
+    '''
+
 # REGLA VARS
 
 def p_vars(t):
@@ -64,23 +77,10 @@ def p_tipo_compuesto(t):
     tipo_compuesto : ID
     '''
 
-# REGLA CUERPO
-
-def p_cuerpo(t):
-    '''
-    cuerpo      :  cuerpo_1 funcion_main
-    '''
-
-def p_cuerpo_1(t):
-    '''
-    cuerpo_1    : funciones 
-                | epsilon
-    '''
-
 # REGLAS FUNCIONES (FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS)
 def p_funcion_main(t):
     '''
-    funcion_main : MAIN LPAREN RPAREN LCURLY RCURLY
+    funcion_main : MAIN LPAREN RPAREN LCURLY bloque RCURLY
     '''
 
 def p_funciones(t):
@@ -98,13 +98,13 @@ def p_funciones_1(t):
 # # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
 def p_funcion_tipo(t):
     '''
-    funcion_tipo : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY RETURN RCURLY
+    funcion_tipo : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY bloque RETURN RCURLY
     '''
 
 def p_funcion_void(t):
     '''
 
-    funcion_void : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY RCURLY
+    funcion_void : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
     '''
 
 # REGLA PARAMS
@@ -368,12 +368,11 @@ def p_np_function_parameters(p):
 # Adding a variable to the symbols table
 def p_np_add_variable(p):
     'np_add_variable :'
-    vars_table.add_local_variable(p)
-        
-# Adding a variable to the symbols table
-def p_np_add_variable_global(p):
-    'np_add_variable_global :'
-    vars_table.add_global_variable(p)
+    vars_table.add_variable(p)
+
+def p_np_end_global_scope(p):
+    'np_end_global_scope :'
+    vars_table.global_scope = False
         
 yacc.yacc()
 
