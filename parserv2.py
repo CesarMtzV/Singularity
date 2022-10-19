@@ -1,10 +1,18 @@
+from operator import ge
 import sys
 import ply.yacc as yacc
+from Quadruple import Quadruple
 
 from lexer import tokens
 from varsTable import VariablesTable
+from IntermediateCodeGen import ICG
+from semanticCube import SemanticCube
+from Quadruple import Quadruple
 
 vars_table = VariablesTable()
+generateIC = ICG()
+SemanticCube = SemanticCube()
+generateQuad = []
 
 # REGLA PROGRAMA
 def p_programa(t):
@@ -247,7 +255,7 @@ def p_t_exp_1(t):
 # REGLA DE GIGA EXPRESION
 def p_g_exp(t):
     '''
-    g_exp       : m_exp g_exp_1
+    g_exp       : m_exp np_expression g_exp_1
     '''
 
 def p_g_exp_1(t):
@@ -263,7 +271,7 @@ def p_g_exp_2(t):
                 | GREATER_THAN_OR_EQUAL
                 | LESS_THAN_OR_EQUAL
                 | NOT_EQUAL
-                | EQUAL
+                | EQUAL np_add_operator
     '''
 
 # REGLAS DE MEGA EXPRESION
@@ -378,6 +386,33 @@ def p_np_add_variable(p):
 def p_np_end_global_scope(p):
     'np_end_global_scope :'
     vars_table.global_scope = False
+    
+def p_np_add_operator(p):
+    'np_add_operator :'
+
+    generateIC.stackOperands.append(p[1])
+
+# Handle expressions
+def p_np_expression(p):
+    'np_expression :'
+
+    if (generateIC.stackOperators):
+        operator = generateIC.stackOperators[-1]
+        if operator == '>' or operator == '>=' or operator == '<' or operator == '<=' or operator == '==' or operator == '<>':
+            right = generateIC.stackOperands.pop()
+            left = generateIC.stackOperands.pop()
+            rightType = generateIC.stackTypes.pop()
+            leftType = generateIC.stackTypes.pop()
+            operator = generateIC.stackOperators.pop()
+            resultType = SemanticCube[leftType][rightType][operator]
+
+            if resultType == 'error':
+                print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
+            else:
+                
+                generateQuad.append(Quadruple(left,right,operator, ))
+                generateIC.stackTypes.append(resultType)
+                idx += 1
         
 yacc.yacc()
 

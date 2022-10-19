@@ -15,3 +15,9 @@
 -   Se modificaron algunos diagramas de sintaxis
 -   Se terminó el cubo semántico
 -   Se inició con la tabla de variables
+
+## Avance 3: Semántica, Generación de Código de Expresiones y Estatutos Lineales
+-   Se corrigieron mucho más a fondo los problemas presentes en la gramática
+-   Se crearon las clases de Cubo Semántico, Generación de Código Intermedio y Cuadruplos
+-   Se inició la implementación de algunos puntos neurálgicos
+-   Se corrigió el error de la declaración de variables globales
