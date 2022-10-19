@@ -6,7 +6,9 @@ from varsTable import VariablesTable
 
 vars_table = VariablesTable()
 
-# REGLA PROGRAMA
+################
+### PROGRAMA ###
+################
 def p_programa(t):
     '''
     programa    : programa_1 cuerpo
@@ -18,11 +20,13 @@ def p_programa_1(t):
                 | epsilon
     '''
 
-# REGLA CUERPO
 
+##############
+### CUERPO ###
+##############
 def p_cuerpo(t):
     '''
-    cuerpo      :  cuerpo_1 funcion_main
+    cuerpo      :  cuerpo_2 cuerpo_1 funcion_main
     '''
 
 def p_cuerpo_1(t):
@@ -31,8 +35,16 @@ def p_cuerpo_1(t):
                 | epsilon
     '''
 
-# REGLA VARS
+def p_cuerpo_2(t):
+    '''
+    cuerpo_2    : clase
+                | epsilon
+    '''
 
+
+############
+### VARS ###
+############
 def p_vars(t):
     '''
     vars        : tipo_simple ID np_add_variable vars_1
@@ -62,8 +74,10 @@ def p_vars_4(t):
                 | epsilon
     '''
 
-# REGLA TIPOS DE DATOS
 
+######################
+### TIPOS DE DATOS ###
+######################
 def p_tipo_simple(t):
     '''
     tipo_simple : INT 
@@ -77,38 +91,32 @@ def p_tipo_compuesto(t):
     tipo_compuesto : ID
     '''
 
-# REGLAS FUNCIONES (FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS)
+
+#################
+### FUNCIONES ###
+#################
 def p_funcion_main(t):
     '''
     funcion_main : MAIN LPAREN RPAREN LCURLY bloque RCURLY
     '''
-    print(vars_table.vars_table)
 
 def p_funciones(t):
     '''
-    funciones   : funcion_tipo funciones_1
-                | funcion_void funciones_1
-    '''
-
-def p_funciones_1(t):
-    '''
-    funciones_1 : funciones
+    funciones   : funcion funciones
                 | epsilon
     '''
 
-# # FALTA AGREGAR EL BLOQUE ENTRE LOS CURLY BRACKETS
-def p_funcion_tipo(t):
+def p_function(t):
     '''
-    funcion_tipo : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY bloque RETURN RCURLY
-    '''
-
-def p_funcion_void(t):
+    funcion     : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
+                | FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
+                | epsilon
     '''
 
-    funcion_void : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
-    '''
 
-# REGLA PARAMS
+##############
+### PARAMS ###
+##############
 def p_params(t):
     '''
     params      : tipo_simple ID np_function_parameters params_1 
@@ -121,6 +129,10 @@ def p_params_1(t):
                 | epsilon
     '''
 
+
+##############
+### BLOQUE ###
+##############
 def p_bloque(t):
     '''
     bloque      : estatuto bloque_1
@@ -132,7 +144,10 @@ def p_bloque_1(t):
                 | epsilon
     '''
 
-# TODO: EL RESTO DE LOS ESTATUTOS
+
+#################
+### ESTATUTOS ###
+#################
 def p_estatuto(T):
     '''
     estatuto    : asigna
@@ -142,6 +157,7 @@ def p_estatuto(T):
                 | condicion
                 | ciclo_w
                 | ciclo_f
+                | return
     '''
 
 # TODO: ID puede ser un arreglo, una matriz, atributo de una clase, etc... Hay que adaptarlo
@@ -220,7 +236,50 @@ def p_ciclo_f(t):
     ciclo_f : FOR LPAREN ID IN RANGE LPAREN VAR_CONST_INT COMMA VAR_CONST_INT RPAREN RPAREN LCURLY bloque RCURLY
     '''
 
-# REGLA DE EXPRESION
+def p_return(t):
+    '''
+    return  : RETURN exp SEMICOLON
+    '''
+
+##############
+### CLASES ###
+##############
+
+def p_clase(t):
+    '''
+    clase       : CLASS ID LCURLY ATTRIBUTES COLON vars constructor metodos RCURLY clase
+                | CLASS ID INHERITS ID LCURLY ATTRIBUTES COLON vars constructor metodos RCURLY clase
+                | epsilon
+    '''
+
+def p_constructor(t):
+    '''
+    constructor : CONSTRUCTORS COLON constructores
+    '''
+
+def p_constructores(t):
+    '''
+    constructores   : ID LPAREN RPAREN LCURLY bloque RCURLY constructores
+                    | ID LPAREN params RPAREN LCURLY bloque RCURLY constructores
+                    | epsilon
+    '''
+
+def p_metodos(t):
+    '''
+    metodos     : METHODS COLON metodo
+    '''
+
+def p_metodo(t):
+    '''
+    metodo      : METHOD tipo_simple ID LPAREN params RPAREN LCURLY bloque RCURLY metodo
+                | METHOD VOID ID LPAREN params RPAREN LCURLY bloque RCURLY metodo
+                | epsilon
+    '''
+
+
+#################
+### EXPRESION ###
+#################
 def p_exp(t):
     '''
     exp         : t_exp exp_1
@@ -363,17 +422,20 @@ def p_error(t):
 # Adding a function to the functions directory
 def p_np_add_function(p):
     'np_add_function :'
-    vars_table.add_function(p)
+    # vars_table.add_function(p)
+    pass
 
 # Adding a function's parameters to its symbol table
 def p_np_function_parameters(p):
     'np_function_parameters :'
-    vars_table.add_function_parameters(p)
+    # vars_table.add_function_parameters(p)
+    pass
         
 # Adding a variable to the symbols table
 def p_np_add_variable(p):
     'np_add_variable :'
-    vars_table.add_variable(p)
+    # vars_table.add_variable(p)
+    pass
 
 def p_np_end_global_scope(p):
     'np_end_global_scope :'
