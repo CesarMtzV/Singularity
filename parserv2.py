@@ -45,10 +45,16 @@ def p_cuerpo_2(t):
 ############
 ### VARS ###
 ############
+def p_vars_sup(t):
+    '''
+    vars_sup    : vars 
+                | epsilon
+    '''
+    
+
 def p_vars(t):
     '''
     vars        : tipo_simple ID np_add_variable vars_1
-                | tipo_compuesto ID np_add_variable SEMICOLON vars_4
     '''
 
 def p_vars_1(t):
@@ -86,12 +92,6 @@ def p_tipo_simple(t):
                 | STRING
     '''
 
-def p_tipo_compuesto(t):
-    '''
-    tipo_compuesto : ID
-    '''
-
-
 #################
 ### FUNCIONES ###
 #################
@@ -108,8 +108,8 @@ def p_funciones(t):
 
 def p_function(t):
     '''
-    funcion     : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
-                | FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY bloque RCURLY
+    funcion     : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
+                | FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
                 | epsilon
     '''
 
@@ -135,14 +135,15 @@ def p_params_1(t):
 ##############
 def p_bloque(t):
     '''
-    bloque      : estatuto bloque_1
-    '''
-
-def p_bloque_1(t):
-    '''
-    bloque_1    : bloque
+    bloque      : estatuto bloque
                 | epsilon
     '''
+
+#def p_bloque_1(t):
+#    '''
+#    bloque_1    : bloque
+#                | epsilon
+#    '''
 
 
 #################
