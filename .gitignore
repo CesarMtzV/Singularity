@@ -8,6 +8,7 @@ ply/
 *.sgy
 parsetab.py
 parser.out
+*.txt
 
 # C extensions
 *.so
