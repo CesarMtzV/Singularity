@@ -1,4 +1,5 @@
 import sys
+from pprint import pprint
 import ply.yacc as yacc
 
 from lexer import tokens
@@ -51,7 +52,6 @@ def p_vars_sup(t):
                 | epsilon
     '''
     
-
 def p_vars(t):
     '''
     vars        : tipo_simple ID np_add_variable vars_1
@@ -91,6 +91,7 @@ def p_tipo_simple(t):
                 | BOOL 
                 | STRING
     '''
+    vars_table.current_type = t[1]
 
 #################
 ### FUNCIONES ###
@@ -108,10 +109,14 @@ def p_funciones(t):
 
 def p_function(t):
     '''
-    funcion     : FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
-                | FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
+    funcion     : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY 
+                | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
                 | epsilon
     '''
+
+    # Asignar el tipo VOID si la funcion no tiene tipo_simple
+    if t[2] == "void":
+        vars_table.vars_table[vars_table.current_function]["type"] = "void" 
 
 
 ##############
@@ -138,12 +143,6 @@ def p_bloque(t):
     bloque      : estatuto bloque
                 | epsilon
     '''
-
-#def p_bloque_1(t):
-#    '''
-#    bloque_1    : bloque
-#                | epsilon
-#    '''
 
 
 #################
@@ -423,19 +422,20 @@ def p_error(t):
 # Adding a function to the functions directory
 def p_np_add_function(p):
     'np_add_function :'
-    # vars_table.add_function(p)
+    vars_table.add_function(p[-1]) # p[-1] = nombre_funcion
     pass
 
 # Adding a function's parameters to its symbol table
 def p_np_function_parameters(p):
     'np_function_parameters :'
-    # vars_table.add_function_parameters(p)
+    vars_table.add_function_parameters(p[-1])
+    # pprint(vars_table.vars_table)
     pass
         
 # Adding a variable to the symbols table
 def p_np_add_variable(p):
     'np_add_variable :'
-    # vars_table.add_variable(p)
+    vars_table.add_variable(p)
     pass
 
 def p_np_end_global_scope(p):
@@ -451,4 +451,5 @@ if __name__ == '__main__':
         with open(sys.argv[1], 'r') as f:
             data = f.read()
             yacc.parse(data)
+            pprint(vars_table.vars_table)
             print("Parser finished reading the file.")
