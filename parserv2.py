@@ -7,6 +7,8 @@ from varsTable import VariablesTable
 
 vars_table = VariablesTable()
 
+is_void_function = False
+
 ################
 ### PROGRAMA ###
 ################
@@ -109,14 +111,10 @@ def p_funciones(t):
 
 def p_function(t):
     '''
-    funcion     : FUNCTION VOID ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY 
+    funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY 
                 | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
                 | epsilon
     '''
-
-    # Asignar el tipo VOID si la funcion no tiene tipo_simple
-    if t[2] == "void":
-        vars_table.vars_table[vars_table.current_function]["type"] = "void" 
 
 
 ##############
@@ -422,21 +420,22 @@ def p_error(t):
 # Adding a function to the functions directory
 def p_np_add_function(p):
     'np_add_function :'
-    vars_table.add_function(p[-1]) # p[-1] = nombre_funcion
+    vars_table.add_function(p[-1], False) # p[-1] = nombre_funcion
     pass
+
+def p_np_add_void_function(p):
+    'np_add_void_function :'
+    vars_table.add_function(p[-1], True) # p[-1] = nombre_funcion
 
 # Adding a function's parameters to its symbol table
 def p_np_function_parameters(p):
     'np_function_parameters :'
     vars_table.add_function_parameters(p[-1])
-    # pprint(vars_table.vars_table)
-    pass
         
 # Adding a variable to the symbols table
 def p_np_add_variable(p):
     'np_add_variable :'
     vars_table.add_variable(p)
-    pass
 
 def p_np_end_global_scope(p):
     'np_end_global_scope :'

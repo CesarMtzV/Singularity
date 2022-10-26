@@ -13,18 +13,26 @@ class VariablesTable:
         self.current_array_size = 0
         self.global_scope = True
 
-    def add_function(self, function_name):
+    def add_function(self, function_name :str, is_void_function :bool) -> None:
         """
         Agregar una funcion al diccionario de funciones
         """
 
         self.current_function = function_name
-
+        if is_void_function:
+            self.current_type = "void"
+        
+        # Si la funcion no existe en tabla de variables
         if self.current_function not in self.vars_table:
+
+            # Agregar la función
             self.vars_table[self.current_function] = {
                 "type": self.current_type,
                 "vars": {},
             }
+
+            # TODO: Aplicar el parche guadalupano para funciones tipo
+
         else:
             raise VarsTableException(
                 f"Function '{self.current_function}' has already been declared!"
