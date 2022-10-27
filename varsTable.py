@@ -45,6 +45,9 @@ class VariablesTable:
                     }
                 else:
                     raise VarsTableException(f"Function '{self.current_function}' already exists as a global variable")
+            
+            # Liberar memoria local para las variables (en caso de tener mas de una funcion)
+            memory.dealloc()
 
         else:
             raise VarsTableException(
@@ -58,7 +61,8 @@ class VariablesTable:
 
         if param_name not in self.vars_table[self.current_function]["vars"]:
             self.vars_table[self.current_function]["vars"][param_name] = {
-                "type": self.current_type
+                "type": self.current_type,
+                "memory_position" : memory.malloc(1, "local", self.current_type)
             }
         else:
             raise VarsTableException(
@@ -74,14 +78,16 @@ class VariablesTable:
         if self.global_scope:
             if current_var not in self.vars_table["global"]["vars"]:
                 self.vars_table["global"]["vars"][current_var] = {
-                    "type" : self.current_type
+                    "type" : self.current_type,
+                    "memory_position" : memory.malloc(1, "global", self.current_type)
                 }
             else:
                 raise VarsTableException(f"Global variable '{current_var}' already exists")
         else:
             if current_var not in self.vars_table[self.current_function]["vars"]:
                 self.vars_table[self.current_function]["vars"][current_var] = {
-                    "type" : self.current_type
+                    "type" : self.current_type,
+                    "memory_position" : memory.malloc(1, "local", self.current_type)
                 }
             else:
                 raise VarsTableException(f"Local variable '{current_var}' already exists")

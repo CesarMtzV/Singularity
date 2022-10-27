@@ -218,7 +218,19 @@ class MemoryManager:
         else:
             raise MemoryManagerException(f"Undefined scope: {scope}")
 
+    def dealloc(self):
+        # Memoria local
+        self.local_int          = 9000
+        self.local_temp_int     = 10000
+        
+        self.local_float        = 11000
+        self.local_temp_float   = 12000
+        
+        self.local_bool         = 13000
+        self.local_temp_bool    = 14000
 
+        self.local_string       = 15000
+        self.local_temp_string  = 16000
 
 
 class MemoryManagerException(Exception):
