@@ -1,3 +1,7 @@
+from MemoryManager import MemoryManager
+
+memory = MemoryManager()
+
 class VariablesTable:
     "Esta clase contiene los métodos y variables necesarias para manejar la tabla de variables del compilador"
 
@@ -31,7 +35,16 @@ class VariablesTable:
                 "vars": {},
             }
 
-            # TODO: Aplicar el parche guadalupano para funciones tipo
+            # Parche Guadalupano para funciones tipo
+            if not is_void_function:
+                # Revisar si ya existe una variable con el nombre de la funcion
+                if self.current_function not in self.vars_table["global"]["vars"]:
+                    self.vars_table["global"]["vars"][self.current_function] = {
+                        "type": self.current_type,
+                        "memory_position": memory.malloc(1, "global", self.current_type)
+                    }
+                else:
+                    raise VarsTableException(f"Function '{self.current_function}' already exists as a global variable")
 
         else:
             raise VarsTableException(
