@@ -1,11 +1,36 @@
+from asyncio import constants
 import sys
 from pprint import pprint
+from unittest import result
+from xmlrpc.client import Boolean
 import ply.yacc as yacc
 
+from collections import deque
 from lexer import tokens
 from varsTable import VariablesTable
+from quadruple import Quadruple
+from semanticCube import SemanticCube
+from MemoryManager import MemoryManager
 
 vars_table = VariablesTable()
+# quad = Quadruple(0,"","","","")
+semantic_cube = SemanticCube().semantic_cube 
+memory = MemoryManager()
+
+
+constants_table = {'int': {}, 'float': {}, 'bool': {}, 'string': {}} # Constants Table
+
+## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
+stackOperators = []
+##se guardan las cosas con las que opero que son los IDs
+stackOperands = []
+## Se guardan los tipos
+stackTypes = []
+# Se guardan los saltos
+stackJumps = []
+
+##Se guardan los cuadruplos que se van generando
+quadList = []
 
 is_void_function = False
 
@@ -163,6 +188,9 @@ def p_asigna(t):
     '''
     asigna      : ID ASSIGN exp SEMICOLON
     '''
+    # TODO: agregar validación de si la variable existe en vars table 
+    stackOperands.append(t[1])
+
 
 def p_llamada(t):
     '''
@@ -326,13 +354,13 @@ def p_g_exp_2(t):
 # REGLAS DE MEGA EXPRESION
 def p_m_exp(t):
     '''
-    m_exp       : termino m_exp_1
+    m_exp       : termino np_add_plusminus m_exp_1
     '''
 
 def p_m_exp_1(t):
     '''
-    m_exp_1     : PLUS m_exp
-                | MINUS m_exp
+    m_exp_1     : PLUS np_addOperator m_exp
+                | MINUS np_addOperator m_exp
                 | epsilon
     '''
 
@@ -364,7 +392,7 @@ def p_factor_1(t):
 
 def p_factor_2(t):
     '''
-    factor_2    : VAR_CONST_INT
+    factor_2    : VAR_CONST_INT np_addInt
                 | VAR_CONST_FLOAT
                 | VAR_CONST_STRING
                 | FALSE
@@ -440,6 +468,44 @@ def p_np_add_variable(p):
 def p_np_end_global_scope(p):
     'np_end_global_scope :'
     vars_table.global_scope = False
+    
+def p_np_addOperator(p):
+    'np_addOperator :'
+    stackOperators.append(p[-1])
+
+def p_np_addInt(p):
+    'np_addInt :'
+    
+    operand = p[-1]
+    print(operand)
+    
+    if operand not in constants_table['int']:
+        memoryPos = memory.malloc(1,'global', 'int')
+        constants_table['int'][operand] = {'type': 'int', 'memory': memoryPos}
+
+    stackOperands.append(constants_table['int'][operand]['memory'])
+    stackTypes.append('int')
+
+def p_np_add_plusminus(p):
+    'np_add_plusminus :'
+    if (stackOperators):
+        if stackOperators[-1] == '+' or stackOperators[-1] == '-':
+            rightOP = stackOperands.pop()
+            rightType = stackTypes.pop()
+            leftOP = stackOperands.pop()
+            leftType = stackTypes.pop()
+            operator = stackOperators.pop()
+            resultType = semantic_cube[rightType][leftType][operator]
+            
+            memoryPosition = memory.malloc(1,'global',resultType)
+            
+            if resultType == 'error':
+                print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
+            else:
+                # quadList.append(quad(operator, leftOP, rightOP, memoryPosition))
+                quadList.append(Quadruple(operator, leftOP, rightOP, memoryPosition))
+                stackOperands.append(memoryPosition)
+                stackTypes.append(resultType)
         
 yacc.yacc()
 
