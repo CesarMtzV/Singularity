@@ -367,14 +367,13 @@ def p_m_exp_1(t):
 # REGLAS DE TERMINO
 def p_termino(t):
     '''
-    termino     : factor termino_1
+    termino     : factor np_add_multiplydivide termino_1
     '''
 
 def p_termino_1(t):
     '''
     termino_1   : MULTIPLY termino
                 | DIVIDE termino
-                | MOD termino
                 | epsilon
     '''
 
@@ -393,10 +392,10 @@ def p_factor_1(t):
 def p_factor_2(t):
     '''
     factor_2    : VAR_CONST_INT np_addInt
-                | VAR_CONST_FLOAT
-                | VAR_CONST_STRING
-                | FALSE
-                | TRUE
+                | VAR_CONST_FLOAT np_addFloat
+                | VAR_CONST_STRING np_addString
+                | FALSE np_addBool
+                | TRUE np_addBool
                 | epsilon
     '''
 
@@ -486,6 +485,40 @@ def p_np_addInt(p):
     stackOperands.append(constants_table['int'][operand]['memory'])
     stackTypes.append('int')
 
+def p_np_addFloat(p):
+    'np_addFloat :'
+    
+    operand = p[-1]
+    if operand not in constants_table['float']:
+        memoryPos = memory.malloc(1,'global','float')
+        constants_table['float'][operand] = {'type':'float','memory': memoryPos}
+    
+    stackOperands.append(constants_table['float'][operand]['memory'])
+    stackTypes.append('float')
+    
+def p_np_addString(p):
+    'np_addString :'
+    
+    operand = p[-1]
+    if operand not in constants_table['string']:
+        memoryPos = memory.malloc(1,'global','string')
+        constants_table['string'][operand] = {'type':'string','memory': memoryPos}
+        
+    stackOperands.append(constants_table['string'][operand]['memory'])
+    stackTypes.append('string')
+    
+def p_np_addBool(p):
+    'np_addBool :'
+    
+    operand = p[-1]
+    if operand not in constants_table['bool']:
+        memoryPos = memory.malloc(1,'global','bool')
+        constants_table['bool'][operand] = {'type':'bool','memory': memoryPos}
+        
+    stackOperands.append(constants_table['bool'][operand]['memory'])
+    stackTypes.append('bool')
+    
+
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
     if (stackOperators):
@@ -502,7 +535,26 @@ def p_np_add_plusminus(p):
             if resultType == 'error':
                 print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
             else:
-                # quadList.append(quad(operator, leftOP, rightOP, memoryPosition))
+                quadList.append(Quadruple(operator, leftOP, rightOP, memoryPosition))
+                stackOperands.append(memoryPosition)
+                stackTypes.append(resultType)
+                
+def p_np_add_multiplydivide(p):
+    'np_add_multiplydivide :'
+    if (stackOperators):
+        if stackOperators[-1] == '*' or stackOperators[-1] == '/':
+            rightOP = stackOperands.pop()
+            rightType = stackTypes.pop()
+            leftOP = stackOperands.pop()
+            leftType = stackTypes.pop()
+            operator = stackOperators.pop()
+            resultType = semantic_cube[rightType][leftType][operator]
+            
+            memoryPosition = memory.malloc(1,'global',resultType)
+            
+            if resultType == 'error':
+                print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
+            else:
                 quadList.append(Quadruple(operator, leftOP, rightOP, memoryPosition))
                 stackOperands.append(memoryPosition)
                 stackTypes.append(resultType)
@@ -517,4 +569,5 @@ if __name__ == '__main__':
             data = f.read()
             yacc.parse(data)
             pprint(vars_table.vars_table)
+            print(quadList)
             print("Parser finished reading the file.")

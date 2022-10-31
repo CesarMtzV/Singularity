@@ -6,7 +6,7 @@ tokens = (
     'INPUT', 'OUTPUT', 'WHILE', 'FOR', 'PI', 'IF', 'ELSE', 'SEMICOLON',
     'COLON', 'COMMA', 'LCURLY', 'RCURLY', 'ASSIGN', 'LPAREN','RPAREN',
     'LBRACKET', 'RBRACKET', 'AND', 'OR', 'CLASS', 'TRUE', 'FALSE',
-    'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
+    'PLUS', 'POW', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
     'COUT', 'CIN', 'MAIN', 'IN', 'RANGE', 'INHERITS', 'ATTRIBUTES', 'METHODS', 'METHOD', 'CONSTRUCTORS',
     'GREATER_THAN', 'LESS_THAN_OR_EQUAL', 'GREATER_THAN_OR_EQUAL', 'EQUAL',
     'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING',
@@ -58,7 +58,6 @@ t_MINUS                     = r'\-'
 t_MULTIPLY                  = r'\*'
 t_DIVIDE                    = r'/'
 t_POWER                     = r'\^'
-t_MOD                       = r'%'
 t_LESS_THAN                 = r'\<'
 t_GREATER_THAN              = r'\>'
 t_GREATER_THAN_OR_EQUAL     = r'\>\='
