@@ -40,4 +40,4 @@ class Quadruple:
         self.result = cont
 
     def print_quad(self):
-        print("[" + str(self.id) + "," + str(self.operator) + "," + str(self.left_operator) + "," + str(self.right_operator) + "," + str(self.result) + "]")
+        print("[" + str(self.operator) + "," + str(self.left_operator) + "," + str(self.right_operator) + "," + str(self.result) + "]")

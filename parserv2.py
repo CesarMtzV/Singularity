@@ -372,8 +372,8 @@ def p_termino(t):
 
 def p_termino_1(t):
     '''
-    termino_1   : MULTIPLY termino
-                | DIVIDE termino
+    termino_1   : MULTIPLY np_addOperator termino
+                | DIVIDE np_addOperator termino
                 | epsilon
     '''
 
@@ -476,7 +476,6 @@ def p_np_addInt(p):
     'np_addInt :'
     
     operand = p[-1]
-    print(operand)
     
     if operand not in constants_table['int']:
         memoryPos = memory.malloc(1,'global', 'int')
@@ -489,10 +488,12 @@ def p_np_addFloat(p):
     'np_addFloat :'
     
     operand = p[-1]
+    print(operand)
     if operand not in constants_table['float']:
         memoryPos = memory.malloc(1,'global','float')
         constants_table['float'][operand] = {'type':'float','memory': memoryPos}
     
+
     stackOperands.append(constants_table['float'][operand]['memory'])
     stackTypes.append('float')
     
@@ -569,5 +570,6 @@ if __name__ == '__main__':
             data = f.read()
             yacc.parse(data)
             pprint(vars_table.vars_table)
-            print(quadList)
+            for q in quadList:
+                q.print_quad()
             print("Parser finished reading the file.")
