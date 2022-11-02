@@ -186,10 +186,10 @@ def p_estatuto(T):
 # TODO: ID puede ser un arreglo, una matriz, atributo de una clase, etc... Hay que adaptarlo
 def p_asigna(t):
     '''
-    asigna      : ID ASSIGN exp SEMICOLON
+    asigna      : ID ASSIGN np_addOperator exp np_asignation SEMICOLON
     '''
     # TODO: agregar validación de si la variable existe en vars table 
-    stackOperands.append(t[1])
+
 
 
 def p_llamada(t):
@@ -313,7 +313,7 @@ def p_exp(t):
 
 def p_exp_1(t):
     '''
-    exp_1       : OR exp
+    exp_1       : OR np_addOperator exp
                 | epsilon
     '''
 
@@ -325,14 +325,14 @@ def p_t_exp(t):
 
 def p_t_exp_1(t):
     '''
-    t_exp_1     : AND t_exp
+    t_exp_1     : AND np_addOperator t_exp
                 | epsilon
     '''
 
 # REGLA DE GIGA EXPRESION
 def p_g_exp(t):
     '''
-    g_exp       : m_exp g_exp_1
+    g_exp       : m_exp np_add_conditionals g_exp_1
     '''
 
 def p_g_exp_1(t):
@@ -343,11 +343,11 @@ def p_g_exp_1(t):
 
 def p_g_exp_2(t):
     '''
-    g_exp_2     : GREATER_THAN
-                | LESS_THAN
-                | GREATER_THAN_OR_EQUAL
-                | LESS_THAN_OR_EQUAL
-                | NOT_EQUAL
+    g_exp_2     : GREATER_THAN np_addOperator
+                | LESS_THAN np_addOperator
+                | GREATER_THAN_OR_EQUAL np_addOperator
+                | LESS_THAN_OR_EQUAL np_addOperator
+                | NOT_EQUAL np_addOperator
                 | EQUAL
     '''
 
@@ -478,23 +478,25 @@ def p_np_addInt(p):
     operand = p[-1]
     
     if operand not in constants_table['int']:
-        memoryPos = memory.malloc(1,'global', 'int')
+        memoryPos = memory.malloc(1,'constant', 'int')
         constants_table['int'][operand] = {'type': 'int', 'memory': memoryPos}
 
-    stackOperands.append(constants_table['int'][operand]['memory'])
+    temp = constants_table['int'][operand]['memory']
+    stackOperands.append(temp)
     stackTypes.append('int')
 
 def p_np_addFloat(p):
     'np_addFloat :'
     
     operand = p[-1]
-    print(operand)
     if operand not in constants_table['float']:
-        memoryPos = memory.malloc(1,'global','float')
+        memoryPos = memory.malloc(1,'constant','float')
         constants_table['float'][operand] = {'type':'float','memory': memoryPos}
     
 
-    stackOperands.append(constants_table['float'][operand]['memory'])
+    temp = constants_table['float'][operand]['memory']
+
+    stackOperands.append(temp)
     stackTypes.append('float')
     
 def p_np_addString(p):
@@ -502,7 +504,7 @@ def p_np_addString(p):
     
     operand = p[-1]
     if operand not in constants_table['string']:
-        memoryPos = memory.malloc(1,'global','string')
+        memoryPos = memory.malloc(1,'constant','string')
         constants_table['string'][operand] = {'type':'string','memory': memoryPos}
         
     stackOperands.append(constants_table['string'][operand]['memory'])
@@ -513,23 +515,37 @@ def p_np_addBool(p):
     
     operand = p[-1]
     if operand not in constants_table['bool']:
-        memoryPos = memory.malloc(1,'global','bool')
+        memoryPos = memory.malloc(1,'constant','bool')
         constants_table['bool'][operand] = {'type':'bool','memory': memoryPos}
         
     stackOperands.append(constants_table['bool'][operand]['memory'])
     stackTypes.append('bool')
     
+def p_np_asignation(p):
+    'np_asignation :'
+    
+    rightOP = stackOperands.pop()
+    rightType = stackTypes.pop()
+    leftOP = stackOperands.pop()
+    leftType = stackTypes.pop()
+    operator = stackOperators.pop()
+
+    if (leftType != rightType):
+       print(f'Cannot assign a(n) \'{leftType}\' to a(n) \'{rightType}\'!')
+    else:
+        quadList.append(Quadruple(operator, leftOP, None, rightOP))
 
 def p_np_add_plusminus(p):
-    'np_add_plusminus :'
+    'np_add_plusminus :'       
     if (stackOperators):
         if stackOperators[-1] == '+' or stackOperators[-1] == '-':
             rightOP = stackOperands.pop()
             rightType = stackTypes.pop()
             leftOP = stackOperands.pop()
             leftType = stackTypes.pop()
+            print(rightOP, rightType,leftOP,leftType)
             operator = stackOperators.pop()
-            resultType = semantic_cube[rightType][leftType][operator]
+            resultType = semantic_cube[leftType][rightType][operator]
             
             memoryPosition = memory.malloc(1,'global',resultType)
             
@@ -548,8 +564,29 @@ def p_np_add_multiplydivide(p):
             rightType = stackTypes.pop()
             leftOP = stackOperands.pop()
             leftType = stackTypes.pop()
+            print(rightOP, rightType,leftOP,leftType)
             operator = stackOperators.pop()
-            resultType = semantic_cube[rightType][leftType][operator]
+            resultType = semantic_cube[leftType][rightType][operator]
+            
+            memoryPosition = memory.malloc(1,'global',resultType)
+            
+            if resultType == 'error':
+                print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
+            else:
+                quadList.append(Quadruple(operator, leftOP, rightOP, memoryPosition))
+                stackOperands.append(memoryPosition)
+                stackTypes.append(resultType)
+                
+def p_np_add_conditionals(p):
+    'np_add_conditionals :'
+    if (stackOperators):
+        if stackOperators[-1] == '==' or stackOperators[-1] == '>' or stackOperators[-1] == '<' or stackOperators[-1] == '>=' or stackOperators[-1] == '<=' or stackOperators[-1] == '!=':
+            rightOP = stackOperands.pop()
+            rightType = stackTypes.pop()
+            leftOP = stackOperands.pop()
+            leftType = stackTypes.pop()
+            operator = stackOperators.pop()
+            resultType = semantic_cube[leftType][rightType][operator]
             
             memoryPosition = memory.malloc(1,'global',resultType)
             
