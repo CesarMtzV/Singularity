@@ -1,36 +1,28 @@
-from asyncio import constants
 import sys
 from pprint import pprint
-from unittest import result
-from xmlrpc.client import Boolean
 import ply.yacc as yacc
 
-from collections import deque
 from lexer import tokens
-from varsTable import VariablesTable
+from varsTable import VariablesTable, VarsTableException
 from quadruple import Quadruple
 from semanticCube import SemanticCube
 from MemoryManager import MemoryManager
 
 vars_table = VariablesTable()
-# quad = Quadruple(0,"","","","")
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
 
-
-constants_table = {'int': {}, 'float': {}, 'bool': {}, 'string': {}} # Constants Table
-
 ## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
-stackOperators = []
+stack_operators = []
 ##se guardan las cosas con las que opero que son los IDs
-stackOperands = []
+stack_operands = []
 ## Se guardan los tipos
-stackTypes = []
+stack_types = []
 # Se guardan los saltos
-stackJumps = []
+stack_jumps = []
 
 ##Se guardan los cuadruplos que se van generando
-quadList = []
+quad_list = []
 
 is_void_function = False
 
@@ -54,12 +46,12 @@ def p_programa_1(t):
 ##############
 def p_cuerpo(t):
     '''
-    cuerpo      :  cuerpo_2 cuerpo_1 funcion_main
+    cuerpo      :  cuerpo_2 cuerpo_1 np_end_global_scope funcion_main
     '''
 
 def p_cuerpo_1(t):
     '''
-    cuerpo_1    : np_end_global_scope funciones 
+    cuerpo_1    : funciones 
                 | epsilon
     '''
 
@@ -186,10 +178,13 @@ def p_estatuto(T):
 # TODO: ID puede ser un arreglo, una matriz, atributo de una clase, etc... Hay que adaptarlo
 def p_asigna(t):
     '''
-    asigna      : ID ASSIGN exp SEMICOLON
+    asigna      : ID np_add_operand ASSIGN np_add_operator exp SEMICOLON
     '''
-    # TODO: agregar validación de si la variable existe en vars table 
-    stackOperands.append(t[1])
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+    result = stack_operands.pop()
+
+    quad_list.append(Quadruple(operator, operand, None, result))
 
 
 def p_llamada(t):
@@ -359,8 +354,8 @@ def p_m_exp(t):
 
 def p_m_exp_1(t):
     '''
-    m_exp_1     : PLUS np_addOperator m_exp
-                | MINUS np_addOperator m_exp
+    m_exp_1     : PLUS np_add_operator m_exp
+                | MINUS np_add_operator m_exp
                 | epsilon
     '''
 
@@ -392,7 +387,7 @@ def p_factor_1(t):
 
 def p_factor_2(t):
     '''
-    factor_2    : VAR_CONST_INT np_addInt
+    factor_2    : VAR_CONST_INT np_add_int
                 | VAR_CONST_FLOAT
                 | VAR_CONST_STRING
                 | FALSE
@@ -415,7 +410,7 @@ def p_factor_4(t):
 # REGLAS DE VARIABLE
 def p_variable(t):
     '''
-    variable    : ID variable_1
+    variable    : ID np_add_operand variable_1
     '''
 
 def p_variable_1(t):
@@ -469,43 +464,63 @@ def p_np_end_global_scope(p):
     'np_end_global_scope :'
     vars_table.global_scope = False
     
-def p_np_addOperator(p):
-    'np_addOperator :'
-    stackOperators.append(p[-1])
+def p_np_add_operator(p):
+    'np_add_operator :'
+    stack_operators.append(p[-1])
 
-def p_np_addInt(p):
-    'np_addInt :'
-    
-    operand = p[-1]
-    print(operand)
-    
-    if operand not in constants_table['int']:
-        memoryPos = memory.malloc(1,'global', 'int')
-        constants_table['int'][operand] = {'type': 'int', 'memory': memoryPos}
+def p_np_add_operand(p):
+    'np_add_operand :'
 
-    stackOperands.append(constants_table['int'][operand]['memory'])
-    stackTypes.append('int')
+    # Revisar si el operando existe en memoria global
+    if p[-1] in vars_table.vars_table["global"]["vars"]:
+        memory_pos = vars_table.vars_table["global"]["vars"][p[-1]]["memory_position"]
+        stack_operands.append(memory_pos)
+        stack_types.append(vars_table.vars_table["global"]["vars"][p[-1]]["type"])
+    # Revisar si el operando existe en memoria local
+    elif p[-1] in vars_table.vars_table[vars_table.current_function]["vars"]:
+        memory_pos = vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["memory_position"]
+        stack_operands.append(memory_pos)
+        stack_types.append(vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["type"])
+    # Mostrar error cuando el operando no existe
+    else:
+        raise VarsTableException(f"The variable \'{p[-1]}\' does not exist")
+
+def p_np_add_int(p):
+    'np_add_int :'
+    
+    if p[-1] not in vars_table.constants_table['int']:
+        memory_pos = memory.malloc(1,'constant', 'int')
+        vars_table.constants_table['int'][p[-1]] = {
+            'memory_position': memory_pos
+        }
+
+    stack_operands.append(vars_table.constants_table['int'][p[-1]]['memory_position'])
+    stack_types.append('int')
 
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
-    if (stackOperators):
-        if stackOperators[-1] == '+' or stackOperators[-1] == '-':
-            rightOP = stackOperands.pop()
-            rightType = stackTypes.pop()
-            leftOP = stackOperands.pop()
-            leftType = stackTypes.pop()
-            operator = stackOperators.pop()
-            resultType = semantic_cube[rightType][leftType][operator]
-            
-            memoryPosition = memory.malloc(1,'global',resultType)
-            
-            if resultType == 'error':
-                print(f'Cannot perform \'{operator}\' with \'{leftType}\' and \'{rightType}\' as operands!')
-            else:
-                # quadList.append(quad(operator, leftOP, rightOP, memoryPosition))
-                quadList.append(Quadruple(operator, leftOP, rightOP, memoryPosition))
-                stackOperands.append(memoryPosition)
-                stackTypes.append(resultType)
+    
+    if stack_operators[-1] == '+' or stack_operators[-1] == "-":
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
+
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
+
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
         
 yacc.yacc()
 
@@ -517,4 +532,6 @@ if __name__ == '__main__':
             data = f.read()
             yacc.parse(data)
             pprint(vars_table.vars_table)
+            pprint(vars_table.constants_table)
+            print(quad_list)
             print("Parser finished reading the file.")
