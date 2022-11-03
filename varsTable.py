@@ -12,6 +12,12 @@ class VariablesTable:
                 "vars" : {}
             }
         }
+        self.constants_table = {
+            'int': {}, 
+            'float': {}, 
+            'bool': {}, 
+            'string': {}
+        }
         self.current_function = ""
         self.current_type = ""
         self.current_array_size = 0
