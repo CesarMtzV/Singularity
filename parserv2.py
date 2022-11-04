@@ -211,23 +211,32 @@ def p_llamada_3(t):
 
 def p_lectura(t):
     '''
-    lectura : INPUT CIN variable SEMICOLON
+    lectura : INPUT np_add_operator CIN variable SEMICOLON
     '''
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+
+    quad_list.append(Quadruple(operator, None, None, operand))
 
 def p_escritura(t):
     '''
     escritura : OUTPUT escritura_1 SEMICOLON
     '''
+    
 
 def p_escritura_1(t):
     '''
-    escritura_1 : COUT escritura_2 escritura_3
+    escritura_1 : COUT np_add_write_operator escritura_2 escritura_3
     '''
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+
+    quad_list.append(Quadruple(operator, None, None, operand))
 
 def p_escritura_2(t):
     '''
     escritura_2 : exp
-                | VAR_CONST_STRING
+                | VAR_CONST_STRING np_add_string
     '''
 
 def p_escritura_3(t):
@@ -466,6 +475,10 @@ def p_np_end_global_scope(p):
 def p_np_add_operator(p):
     'np_add_operator :'
     stack_operators.append(p[-1])
+
+def p_np_add_write_operator(p):
+    'np_add_write_operator :'
+    stack_operators.append("output")
 
 def p_np_add_operand(p):
     'np_add_operand :'
