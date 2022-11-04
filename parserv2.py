@@ -303,47 +303,47 @@ def p_metodo(t):
 #################
 def p_exp(t):
     '''
-    exp         : t_exp exp_1
+    exp         : t_exp np_add_or exp_1
     '''
 
 def p_exp_1(t):
     '''
-    exp_1       : OR exp
+    exp_1       : OR np_add_operator exp
                 | epsilon
     '''
 
 # REGLA DE TERA EXPRESION
 def p_t_exp(t):
     '''
-    t_exp       : g_exp t_exp_1
+    t_exp       : g_exp np_add_and t_exp_1
     '''
 
 def p_t_exp_1(t):
     '''
-    t_exp_1     : AND t_exp
+    t_exp_1     : AND np_add_operator t_exp
                 | epsilon
     '''
 
 # REGLA DE GIGA EXPRESION
 def p_g_exp(t):
     '''
-    g_exp       : m_exp g_exp_1
+    g_exp       : m_exp np_add_conditionals g_exp_1
     '''
 
 def p_g_exp_1(t):
     '''
-    g_exp_1     : g_exp_2 m_exp
+    g_exp_1     : g_exp_2
                 | epsilon
     '''
 
 def p_g_exp_2(t):
     '''
-    g_exp_2     : GREATER_THAN np_add_operator
-                | LESS_THAN np_add_operator
-                | GREATER_THAN_OR_EQUAL np_add_operator
-                | LESS_THAN_OR_EQUAL np_add_operator
-                | NOT_EQUAL np_add_operator
-                | EQUAL np_add_operator
+    g_exp_2     : GREATER_THAN np_add_operator g_exp
+                | LESS_THAN np_add_operator g_exp
+                | GREATER_THAN_OR_EQUAL np_add_operator g_exp
+                | LESS_THAN_OR_EQUAL np_add_operator g_exp
+                | NOT_EQUAL np_add_operator g_exp
+                | EQUAL np_add_operator g_exp
     '''
 
 # REGLAS DE MEGA EXPRESION
@@ -501,7 +501,7 @@ def p_np_add_float(p):
     
     if p[-1] not in vars_table.constants_table['float']:
         memory_pos = memory.malloc(1,'constant', 'float')
-        vars_table.constants_table['int'][p[-1]] = {
+        vars_table.constants_table['float'][p[-1]] = {
             'memory_position': memory_pos
         }
 
@@ -517,7 +517,7 @@ def p_np_add_string(p):
             'memory_position': memory_pos
         }
 
-    stack_operands.append(vars_table.constants_table['float'][p[-1]]['memory_position'])
+    stack_operands.append(vars_table.constants_table['string'][p[-1]]['memory_position'])
     stack_types.append('string')
     
 def p_np_add_bool(p):
@@ -529,85 +529,135 @@ def p_np_add_bool(p):
             'memory_position': memory_pos
         }
 
-    stack_operands.append(vars_table.constants_table['float'][p[-1]]['memory_position'])
+    stack_operands.append(vars_table.constants_table['bool'][p[-1]]['memory_position'])
     stack_types.append('bool')
     
     
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
     
-    if (stack_operators):
-        if stack_operators[-1] == '+' or stack_operators[-1] == "-":
-            operator = stack_operators.pop()
-            
-            right_operand = stack_operands.pop()
-            right_type = stack_types.pop()
-            
-            left_operand = stack_operands.pop()
-            left_type = stack_types.pop()
+    
+    if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == "-"):
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
 
-            result = None
-            result_type = semantic_cube[left_type][right_type][operator]
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
 
-            if result_type != 'error':
-                if not vars_table.global_scope:
-                    result = memory.malloc(1, "local_temp", result_type)
-                # Generate Quad
-                quad_list.append(Quadruple(operator, left_operand, right_operand, result))
-                stack_operands.append(result)
-                stack_types.append(result_type)
-            else:
-                raise TypeError("Type Mismatch")
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
 
 def p_np_add_multiplydivision(p):
     'np_add_multiplydivision :'
-    if (stack_operators):
-        if stack_operators[-1] == '*' or stack_operators[-1] == "/":
-            operator = stack_operators.pop()
-            
-            right_operand = stack_operands.pop()
-            right_type = stack_types.pop()
-            
-            left_operand = stack_operands.pop()
-            left_type = stack_types.pop()
 
-            result = None
-            result_type = semantic_cube[left_type][right_type][operator]
+    if stack_operators and (stack_operators[-1] == '*' or stack_operators[-1] == "/"):
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
 
-            if result_type != 'error':
-                if not vars_table.global_scope:
-                    result = memory.malloc(1, "local_temp", result_type)
-                # Generate Quad
-                quad_list.append(Quadruple(operator, left_operand, right_operand, result))
-                stack_operands.append(result)
-                stack_types.append(result_type)
-            else:
-                raise TypeError("Type Mismatch")
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
+
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
         
 def p_np_add_conditionals(p):
     'np_add_conditionals :'
-    if (stack_operators):
-        if stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == "=>" or stack_operators[-1] == "<" or stack_operators[-1] == "=<":
-            operator = stack_operators.pop()
-            
-            right_operand = stack_operands.pop()
-            right_type = stack_types.pop()
-            
-            left_operand = stack_operands.pop()
-            left_type = stack_types.pop()
 
-            result = None
-            result_type = semantic_cube[left_type][right_type][operator]
+    if stack_operators and (stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == "=>" or stack_operators[-1] == "<" or stack_operators[-1] == "=<"):
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
 
-            if result_type != 'error':
-                if not vars_table.global_scope:
-                    result = memory.malloc(1, "local_temp", result_type)
-                # Generate Quad
-                quad_list.append(Quadruple(operator, left_operand, right_operand, result))
-                stack_operands.append(result)
-                stack_types.append(result_type)
-            else:
-                raise TypeError("Type Mismatch")
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
+
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
+
+def p_np_add_and(p):
+    'np_add_and :'
+
+    if stack_operators and (stack_operators[-1] == "&&"):
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
+
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
+
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
+
+def p_np_add_or(p):
+    'np_add_or :'
+
+    if stack_operators and (stack_operators[-1] == "||"):
+        operator = stack_operators.pop()
+        
+        right_operand = stack_operands.pop()
+        right_type = stack_types.pop()
+        
+        left_operand = stack_operands.pop()
+        left_type = stack_types.pop()
+
+        result = None
+        result_type = semantic_cube[left_type][right_type][operator]
+
+        if result_type != 'error':
+            if not vars_table.global_scope:
+                result = memory.malloc(1, "local_temp", result_type)
+            # Generate Quad
+            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            stack_operands.append(result)
+            stack_types.append(result_type)
+        else:
+            raise TypeError("Type Mismatch")
         
 yacc.yacc()
 
@@ -618,7 +668,12 @@ if __name__ == '__main__':
         with open(sys.argv[1], 'r') as f:
             data = f.read()
             yacc.parse(data)
+            
+            # Used for debugging
             pprint(vars_table.vars_table)
             pprint(vars_table.constants_table)
-            print(quad_list)
+            
+            with open('output.sgo', 'w') as fp:
+                for q in quad_list:
+                    fp.write(f"{q}\n")
             print("Parser finished reading the file.")

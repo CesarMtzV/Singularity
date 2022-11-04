@@ -9,6 +9,7 @@ ply/
 parsetab.py
 parser.out
 *.txt
+*.sgo
 
 # C extensions
 *.so
