@@ -268,8 +268,12 @@ def p_ciclo_f(t):
 
 def p_return(t):
     '''
-    return  : RETURN exp SEMICOLON
+    return  : RETURN np_add_operator exp SEMICOLON
     '''
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+
+    quad_list.append(Quadruple(operator, None, None, operand))
 
 ##############
 ### CLASES ###
