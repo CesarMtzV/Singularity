@@ -40,6 +40,35 @@ class MemoryManager:
         self.const_float        = 18000
         self.const_bool         = 19000
         self.const_string       = 20000
+        
+        self.global_ints = []
+        self.global_temp_ints = []
+        
+        self.global_floats = [] 
+        self.global_temp_floats = []
+        
+        self.global_bools = []
+        self.global_temp_bools = []
+        
+        self.global_strings = []
+        self.global_temp_strings = []
+        
+        self.local_ints = []
+        self.local_temp_ints = []
+        
+        self.local_temp_floats = []
+        self.local_temp_floats = []
+        
+        self.local_bools = []
+        self.local_temp_bools = []
+        
+        self.local_strings = []
+        self.local_temp_strings = []
+        
+        self.const_ints = []
+        self.const_floats = []
+        self.const_bools = []
+        self.const_strings = []
 
     def malloc(self, size :int, scope: str, type :str) -> int:
         """
