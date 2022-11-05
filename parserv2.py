@@ -258,7 +258,7 @@ def p_condicion_1(t):
 
 def p_ciclo_w(t):
     '''
-    ciclo_w : WHILE LPAREN exp RPAREN LCURLY bloque RCURLY
+    ciclo_w : WHILE np_while_1 LPAREN exp RPAREN np_while_2 LCURLY bloque RCURLY np_while_3
     '''
 
 def p_ciclo_f(t):
@@ -732,6 +732,40 @@ def p_np_end_condition(p):
     end = stack_jumps.pop()
 
     quad_list[end].result = ip_counter
+
+def p_np_while_1(p):
+    'np_while_1 :'
+    global ip_counter
+
+    stack_jumps.append(ip_counter)
+
+def p_np_while_2(p):
+    'np_while_2 :'
+    global ip_counter
+
+    exp_type = stack_types.pop()
+    if exp_type != 'bool':
+        raise TypeError('Type Mismatch: WHILE conditions is not BOOL')
+    else:
+        result = stack_operands.pop()
+
+        quad_list.append(Quadruple(ip_counter, "GOTOF", result, None, None))
+        ip_counter += 1
+
+        stack_jumps.append(ip_counter - 1)
+
+def p_np_while_3(p):
+    'np_while_3 :'
+    global ip_counter
+
+    end = stack_jumps.pop()
+    return_quad = stack_jumps.pop()
+
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, return_quad))
+    ip_counter += 1
+
+    quad_list[end].result = ip_counter
+
         
 yacc.yacc()
 
