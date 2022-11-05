@@ -12,19 +12,16 @@ vars_table = VariablesTable()
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
 
-## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
 stack_operators = []
-##se guardan las cosas con las que opero que son los IDs
 stack_operands = []
-## Se guardan los tipos
 stack_types = []
-# Se guardan los saltos
 stack_jumps = []
 
-##Se guardan los cuadruplos que se van generando
 quad_list = []
 
+# Variables Auxiliares
 is_void_function = False
+ip_counter = 1
 
 ################
 ### PROGRAMA ###
@@ -180,11 +177,15 @@ def p_asigna(t):
     '''
     asigna      : ID np_add_operand ASSIGN np_add_operator exp SEMICOLON
     '''
+
+    global ip_counter
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
     result = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, operand, None, result))
+    quad_list.append(Quadruple(ip_counter, operator, operand, None, result))
+    ip_counter += 1
 
 
 def p_llamada(t):
@@ -213,10 +214,13 @@ def p_lectura(t):
     '''
     lectura : INPUT np_add_operator CIN variable SEMICOLON
     '''
+    global ip_counter
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, None, None, operand))
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
 
 def p_escritura(t):
     '''
@@ -226,12 +230,8 @@ def p_escritura(t):
 
 def p_escritura_1(t):
     '''
-    escritura_1 : COUT np_add_write_operator escritura_2 escritura_3
+    escritura_1 : COUT np_add_write_operator escritura_2 np_generate_write_quad escritura_3
     '''
-    operator = stack_operators.pop()
-    operand = stack_operands.pop()
-
-    quad_list.append(Quadruple(operator, None, None, operand))
 
 def p_escritura_2(t):
     '''
@@ -270,10 +270,13 @@ def p_return(t):
     '''
     return  : RETURN np_add_operator exp SEMICOLON
     '''
+    global ip_counter
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, None, None, operand))
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
 
 ##############
 ### CLASES ###
@@ -552,7 +555,7 @@ def p_np_add_bool(p):
     
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
-    
+    global ip_counter
     
     if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == "-"):
         operator = stack_operators.pop()
@@ -570,7 +573,8 @@ def p_np_add_plusminus(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
         else:
@@ -578,6 +582,7 @@ def p_np_add_plusminus(p):
 
 def p_np_add_multiplydivision(p):
     'np_add_multiplydivision :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == '*' or stack_operators[-1] == "/"):
         operator = stack_operators.pop()
@@ -595,7 +600,8 @@ def p_np_add_multiplydivision(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
         else:
@@ -603,6 +609,7 @@ def p_np_add_multiplydivision(p):
         
 def p_np_add_conditionals(p):
     'np_add_conditionals :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == "=>" or stack_operators[-1] == "<" or stack_operators[-1] == "=<"):
         operator = stack_operators.pop()
@@ -620,7 +627,8 @@ def p_np_add_conditionals(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
         else:
@@ -628,6 +636,7 @@ def p_np_add_conditionals(p):
 
 def p_np_add_and(p):
     'np_add_and :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == "&&"):
         operator = stack_operators.pop()
@@ -645,7 +654,8 @@ def p_np_add_and(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
         else:
@@ -653,6 +663,7 @@ def p_np_add_and(p):
 
 def p_np_add_or(p):
     'np_add_or :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == "||"):
         operator = stack_operators.pop()
@@ -670,11 +681,22 @@ def p_np_add_or(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
         else:
             raise TypeError("Type Mismatch")
+
+def p_np_generate_write_quad(p):
+    'np_generate_write_quad :'
+    global ip_counter
+
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
         
 yacc.yacc()
 
