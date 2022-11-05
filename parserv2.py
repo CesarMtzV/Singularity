@@ -21,7 +21,7 @@ quad_list = []
 
 # Variables Auxiliares
 is_void_function = False
-ip_counter = 1
+ip_counter = 0
 
 ################
 ### PROGRAMA ###
@@ -247,13 +247,13 @@ def p_escritura_3(t):
 
 def p_condicion(t):
     '''
-    condicion : IF LPAREN exp RPAREN LCURLY bloque RCURLY condicion_1
+    condicion : IF LPAREN exp RPAREN np_condicion_gotof LCURLY bloque RCURLY condicion_1
     '''
 
 def p_condicion_1(t):
     '''
-    condicion_1 : ELSE LCURLY bloque RCURLY
-                | epsilon
+    condicion_1 : ELSE np_goto_else LCURLY bloque RCURLY np_end_condition
+                | epsilon np_end_condition
     '''
 
 def p_ciclo_w(t):
@@ -697,6 +697,41 @@ def p_np_generate_write_quad(p):
 
     quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
     ip_counter += 1
+
+def p_np_condicion_gotof(p):
+    'np_condicion_gotof :'
+    global ip_counter
+
+    exp_type = stack_types.pop()
+    if exp_type != 'bool':
+        raise TypeError('Type Mismatch in the IF condition')
+    else:
+        result = stack_operands.pop()
+        # Generar el GOTOF con el salto pendiente
+        quad_list.append(Quadruple(ip_counter, "GOTOF", result, None, None))
+        ip_counter += 1
+
+        stack_jumps.append(ip_counter - 1)
+
+def p_np_goto_else(p):
+    'np_goto_else :'
+    global ip_counter
+
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, None))
+    ip_counter += 1
+    
+    false = stack_jumps.pop()
+    stack_jumps.append(ip_counter - 1)
+
+    quad_list[false].result = ip_counter
+
+def p_np_end_condition(p):
+    'np_end_condition :'
+    global ip_counter
+
+    end = stack_jumps.pop()
+
+    quad_list[end].result = ip_counter
         
 yacc.yacc()
 

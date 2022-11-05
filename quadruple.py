@@ -8,7 +8,7 @@ class Quadruple:
         self.result = result
     
     def __str__(self):
-        return f"{self.ip_counter} , {self.operator} , {self.left_operand} , {self.right_operand} , {self.result}"
+        return f"[ {self.ip_counter} , {self.operator} , {self.left_operand} , {self.right_operand} , {self.result} ]"
     
     def __repr__(self):
         return f"Quadruple({self.operator} , {self.left_operand} , {self.right_operand} , {self.result})"
