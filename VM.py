@@ -2,6 +2,9 @@ from MemoryManager import MemoryManager
 
 memory = MemoryManager()
 
+memory.global_ints.append(None)
+memory.global_temp_ints.append(None)
+memory.const_ints.append(None)
 def getAddress(addr):
     
     if 1000<=addr<2000:
@@ -36,6 +39,22 @@ def getAddress(addr):
         if memory.global_temp_strings[addr-8000] == None:
             return
         return memory.global_temp_strings[addr-8000]
+    elif 17000<=addr<18000:
+        if memory.const_ints[addr-17000] == None:
+            return
+        return memory.const_ints[addr-17000]
+    elif 18000<=addr<19000:
+        if memory.const_floats[addr-18000] == None:
+            return
+        return memory.const_floats[addr-18000]
+    elif 19000<=addr<20000:
+        if memory.const_bools[addr-19000] == None:
+            return
+        return memory.const_bools[addr-19000]
+    elif 20000<=addr<21000:
+        if memory.const_strings[addr-20000] == None:
+            return
+        return memory.const_strings[addr-20000]
     
 with open("output.sgo") as file:
     for line in file:
@@ -99,7 +118,9 @@ with open("output.sgo") as file:
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left)
         elif operator == 'output':
+            print(memory.global_ints)
             print(res)
+            print(getAddress(res))
             
                 
                  
