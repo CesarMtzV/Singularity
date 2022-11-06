@@ -43,7 +43,7 @@ def p_programa_1(t):
 ##############
 def p_cuerpo(t):
     '''
-    cuerpo      :  cuerpo_2 cuerpo_1 np_end_global_scope funcion_main
+    cuerpo      :  np_end_global_scope cuerpo_2 cuerpo_1 funcion_main
     '''
 
 def p_cuerpo_1(t):
@@ -123,10 +123,11 @@ def p_funciones(t):
                 | epsilon
     '''
 
+# TODO: Agregar NPs y funcionalidad a funciones tipo
 def p_function(t):
     '''
-    funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY 
-                | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
+    funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_end_function
+                | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY
                 | epsilon
     '''
 
@@ -572,6 +573,10 @@ def p_np_add_plusminus(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
             ip_counter += 1
@@ -599,6 +604,10 @@ def p_np_add_multiplydivision(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
             ip_counter += 1
@@ -626,6 +635,10 @@ def p_np_add_conditionals(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
             ip_counter += 1
@@ -653,6 +666,10 @@ def p_np_add_and(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
             ip_counter += 1
@@ -680,6 +697,10 @@ def p_np_add_or(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
             ip_counter += 1
@@ -765,6 +786,25 @@ def p_np_while_3(p):
     ip_counter += 1
 
     quad_list[end].result = ip_counter
+
+def p_np_set_function_quad(p):
+    'np_set_function_quad :'
+    global ip_counter
+
+    vars_table.vars_table[vars_table.current_function]["start_position"] = ip_counter
+
+def p_np_end_function(p):
+    'np_end_function :'
+    global ip_counter
+
+    # TODO: Esto debe estar DESCOMENTADO en la version final. Por motivos de prueba esta comentado
+    # vars_table.vars_table[vars_table.current_function].pop("vars")
+    
+    quad_list.append(Quadruple(ip_counter, "ENDFUNC", None, None, None))
+    ip_counter += 1
+
+    # Reiniciar la Function Signature
+    vars_table.function_signature = []
 
         
 yacc.yacc()

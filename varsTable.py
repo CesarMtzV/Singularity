@@ -22,6 +22,7 @@ class VariablesTable:
         self.current_type = ""
         self.current_array_size = 0
         self.global_scope = True
+        self.function_signature = []
 
     def add_function(self, function_name :str, is_void_function :bool) -> None:
         """
@@ -39,6 +40,11 @@ class VariablesTable:
             self.vars_table[self.current_function] = {
                 "type": self.current_type,
                 "vars": {},
+                "start_position" : None,
+                "size" : {
+                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
+                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
+                }
             }
 
             # Parche Guadalupano para funciones tipo
@@ -62,14 +68,24 @@ class VariablesTable:
 
     def add_function_parameters(self, param_name):
         """
-        Agregar los parametros de una funcion a la tabla de simbolos
+        Agregar los parametros de una funcion a la tabla de variables y tabla de parámetros
         """
 
         if param_name not in self.vars_table[self.current_function]["vars"]:
+            
+            # Tabla de variables
             self.vars_table[self.current_function]["vars"][param_name] = {
                 "type": self.current_type,
                 "memory_position" : memory.malloc(1, "local", self.current_type)
             }
+
+            # Sumar al contador de variables
+            self.vars_table[self.current_function]["size"]["vars"][self.current_type] += 1
+
+            # Tabla de parámetros
+            self.function_signature.append(self.current_type)
+            self.vars_table[self.current_function]["PARAMETER_TABLE"] = self.function_signature
+
         else:
             raise VarsTableException(
                 f"Variable '{param_name}' has already been declared as another parameter!"
@@ -91,10 +107,16 @@ class VariablesTable:
                 raise VarsTableException(f"Global variable '{current_var}' already exists")
         else:
             if current_var not in self.vars_table[self.current_function]["vars"]:
+
+                # Agregar a la tabla de variables de la funcion
                 self.vars_table[self.current_function]["vars"][current_var] = {
                     "type" : self.current_type,
                     "memory_position" : memory.malloc(1, "local", self.current_type)
                 }
+
+                # Sumar al contador de variables
+                self.vars_table[self.current_function]["size"]["vars"][self.current_type] += 1
+
             else:
                 raise VarsTableException(f"Local variable '{current_var}' already exists")
 
