@@ -30,7 +30,7 @@ called_function = None
 ################
 def p_programa(t):
     '''
-    programa    : programa_1 cuerpo
+    programa    : np_goto_main programa_1 cuerpo
     '''
 
 def p_programa_1(t):
@@ -116,7 +116,7 @@ def p_tipo_simple(t):
 #################
 def p_funcion_main(t):
     '''
-    funcion_main : MAIN LPAREN RPAREN LCURLY bloque RCURLY
+    funcion_main : MAIN np_start_main LPAREN RPAREN LCURLY bloque RCURLY
     '''
 
 def p_funciones(t):
@@ -833,8 +833,10 @@ def p_np_check_param(p):
     argument = stack_operands.pop()
     argument_type = stack_types.pop()
 
-    if not argument_type == vars_table.vars_table[called_function]['PARAMETER_TABLE'][param_counter]:
-        raise TypeError(f"Type Mismatch: ")
+    expected_type = vars_table.vars_table[called_function]['PARAMETER_TABLE'][param_counter]
+
+    if not argument_type == expected_type:
+        raise TypeError(f"Type Mismatch: Expected '{expected_type}' but received '{argument_type}' for function '{called_function}'")
     
     # Generar código de operacion PARAMETER
     quad_list.append(Quadruple(ip_counter, "PARAMETER", argument, None, param_counter + 1))
@@ -855,6 +857,24 @@ def p_np_check_last_param(p):
     if param_counter > number_of_params or param_counter < number_of_params:
         raise VarsTableException(f"Incorrect number of arguments for function '{called_function}'")
 
+def p_np_goto_main(p):
+    'np_goto_main :'
+    global ip_counter
+
+    # Guardar posicion del cuadruplo para regresar
+    stack_jumps.append(ip_counter)
+
+    # Generar el GOTO
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, None))
+    ip_counter += 1
+
+def p_np_start_main(p):
+    'np_start_main :'
+    global ip_counter
+
+    return_addr = stack_jumps.pop()
+
+    quad_list[return_addr].result = ip_counter
         
 yacc.yacc()
 
