@@ -22,6 +22,8 @@ quad_list = []
 # Variables Auxiliares
 is_void_function = False
 ip_counter = 0
+param_counter = 0
+called_function = None
 
 ################
 ### PROGRAMA ###
@@ -191,8 +193,13 @@ def p_asigna(t):
 
 def p_llamada(t):
     '''
-    llamada     : ID LPAREN llamada_1 RPAREN SEMICOLON
+    llamada     : ID np_check_function_name LPAREN llamada_1 np_check_last_param RPAREN SEMICOLON
     '''
+    global ip_counter
+
+    # Generar código de operación GOSUB
+    quad_list.append(Quadruple(ip_counter, "GOSUB", called_function, None, None))
+    ip_counter += 1
 
 def p_llamada_1(t):
     '''
@@ -202,7 +209,7 @@ def p_llamada_1(t):
 
 def p_llamada_2(t):
     '''
-    llamada_2   : exp llamada_3
+    llamada_2   : exp np_check_param np_increase_param_counter llamada_3
     '''
 
 def p_llamada_3(t):
@@ -805,6 +812,48 @@ def p_np_end_function(p):
 
     # Reiniciar la Function Signature
     vars_table.function_signature = []
+
+def p_np_check_function_name(p):
+    'np_check_function_name :'
+    global ip_counter, called_function
+
+    called_function = p[-1]
+
+    if called_function not in vars_table.vars_table:
+        raise VarsTableException(f"The function you are trying to call does not exist: '{called_function}'")
+    
+    # Generar el codigo de operacion ERA
+    quad_list.append(Quadruple(ip_counter, "ERA", called_function, None, None))
+    ip_counter += 1
+
+def p_np_check_param(p):
+    'np_check_param :'
+    global param_counter, ip_counter, called_function
+
+    argument = stack_operands.pop()
+    argument_type = stack_types.pop()
+
+    if not argument_type == vars_table.vars_table[called_function]['PARAMETER_TABLE'][param_counter]:
+        raise TypeError(f"Type Mismatch: ")
+    
+    # Generar código de operacion PARAMETER
+    quad_list.append(Quadruple(ip_counter, "PARAMETER", argument, None, param_counter + 1))
+    ip_counter += 1
+
+def p_np_increase_param_counter(p):
+    'np_increase_param_counter :'
+    global param_counter
+
+    param_counter += 1
+
+def p_np_check_last_param(p):
+    'np_check_last_param :'
+    global param_counter, called_function
+
+    # Coherencia en el número de parámetros
+    number_of_params = len(vars_table.vars_table[called_function]['PARAMETER_TABLE'])
+    if param_counter > number_of_params or param_counter < number_of_params:
+        raise VarsTableException(f"Incorrect number of arguments for function '{called_function}'")
 
         
 yacc.yacc()
