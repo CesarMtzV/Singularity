@@ -1,10 +1,25 @@
 from MemoryManager import MemoryManager
+import parserv2
 
 memory = MemoryManager()
 
 memory.global_ints.append(None)
 memory.global_temp_ints.append(None)
-memory.const_ints.append(None)
+
+constants_table = parserv2.run()
+print(constants_table)
+for type in constants_table:
+    for constant in constants_table[type]:
+        if type == 'int':
+            memory.const_ints.append(constant)
+        if type == 'float':
+            memory.const_floats.append(constant)
+        if type == 'bool':
+            memory.const_bools.append(constant)
+        if type == 'string':
+            memory.const_strings.append(constant)
+
+
 def getAddress(addr):
     
     if 1000<=addr<2000:
@@ -118,8 +133,7 @@ with open("output.sgo") as file:
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left)
         elif operator == 'output':
-            print(memory.global_ints)
-            print(res)
+            print("Output from VM.py")
             print(getAddress(res))
             
                 

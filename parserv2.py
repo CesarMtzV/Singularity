@@ -12,6 +12,8 @@ vars_table = VariablesTable()
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
 
+temp = {}
+
 ## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
 stack_operators = []
 ##se guardan las cosas con las que opero que son los IDs
@@ -678,7 +680,7 @@ def p_np_add_or(p):
         
 yacc.yacc()
 
-if __name__ == '__main__':
+def run():
     if len(sys.argv) == 2:
         program_file = sys.argv[1]
 
@@ -687,10 +689,40 @@ if __name__ == '__main__':
             yacc.parse(data)
             
             # Used for debugging
+            print("Printing from parserv2.py for debugging")
             pprint(vars_table.vars_table)
             pprint(vars_table.constants_table)
+            temp = vars_table.constants_table
             
             with open('output.sgo', 'w') as fp:
                 for q in quad_list:
                     fp.write(f"{q}\n")
             print("Parser finished reading the file.")
+            print("Finished printing from parserv2.py")
+            print("---------------------------------")
+            
+            return vars_table.constants_table
+    
+    
+if __name__ == '__main__':
+    
+    if len(sys.argv) == 2:
+        program_file = sys.argv[1]
+
+        with open(sys.argv[1], 'r') as f:
+            data = f.read()
+            yacc.parse(data)
+            
+            # Used for debugging
+            print("Print from parserv2 for debugging")
+            pprint(vars_table.vars_table)
+            pprint(vars_table.constants_table)
+            temp = vars_table.constants_table
+            
+            with open('output.sgo', 'w') as fp:
+                for q in quad_list:
+                    fp.write(f"{q}\n")
+            print("Parser finished reading the file.")
+            print("Finished printing from parserv2")
+            print("---------------------------------")
+            
