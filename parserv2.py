@@ -21,8 +21,9 @@ quad_list = []
 
 # Variables Auxiliares
 is_void_function = False
+has_return_stmt = False
 ip_counter = 0
-param_counter = 0
+param_counter = 0 # Número de parámetros que se mandan a la hora de llamar una funcion 
 called_function = None
 
 ################
@@ -47,6 +48,11 @@ def p_cuerpo(t):
     '''
     cuerpo      :  np_end_global_scope cuerpo_2 cuerpo_1 funcion_main
     '''
+    global ip_counter
+
+    # Generar Quad del fin de programa
+    quad_list.append(Quadruple(ip_counter, "END", None, None, None))
+    ip_counter += 1
 
 def p_cuerpo_1(t):
     '''
@@ -129,7 +135,7 @@ def p_funciones(t):
 def p_function(t):
     '''
     funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_end_function
-                | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY
+                | FUNCTION tipo_simple np_reset_is_void ID np_add_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_check_return np_end_function
                 | epsilon
     '''
 
@@ -195,11 +201,16 @@ def p_llamada(t):
     '''
     llamada     : ID np_check_function_name LPAREN llamada_1 np_check_last_param RPAREN SEMICOLON
     '''
-    global ip_counter
+    # np_check_function_name : Revisar que la funcion existe en el directorio de funciones
+    # np_check_last_param : Revisar coherencia con el número de parámetros enviados
+    global ip_counter, param_counter
 
     # Generar código de operación GOSUB
     quad_list.append(Quadruple(ip_counter, "GOSUB", called_function, None, None))
     ip_counter += 1
+
+    # Reiniciar el contador de parámetros
+    param_counter = 0
 
 def p_llamada_1(t):
     '''
@@ -211,6 +222,8 @@ def p_llamada_2(t):
     '''
     llamada_2   : exp np_check_param np_increase_param_counter llamada_3
     '''
+    # np_check_param : Revisar si el tipo de parámetro enviado concuerda con la Function Signature
+    # np_increase_param_counter : Aumentar el contador de parámetros
 
 def p_llamada_3(t):
     '''
@@ -278,7 +291,12 @@ def p_return(t):
     '''
     return  : RETURN np_add_operator exp SEMICOLON
     '''
-    global ip_counter
+    global ip_counter, has_return_stmt
+
+    if is_void_function:
+        raise VarsTableException(f"Function '{vars_table.current_function}' is of type void. RETURN statement is not allowed")
+    
+    has_return_stmt = True
 
     operator = stack_operators.pop()
     operand = stack_operands.pop()
@@ -471,7 +489,11 @@ def p_np_add_function(p):
 
 def p_np_add_void_function(p):
     'np_add_void_function :'
+    global is_void_function
+    
     vars_table.add_function(p[-1], True) # p[-1] = nombre_funcion
+    is_void_function = True
+    
 
 # Adding a function's parameters to its symbol table
 def p_np_function_parameters(p):
@@ -800,9 +822,15 @@ def p_np_set_function_quad(p):
 
     vars_table.vars_table[vars_table.current_function]["start_position"] = ip_counter
 
+def p_np_reset_is_void(p):
+    'np_reset_is_void :'
+    global is_void_function
+
+    is_void_function = False
+
 def p_np_end_function(p):
     'np_end_function :'
-    global ip_counter
+    global ip_counter, param_counter
 
     # TODO: Esto debe estar DESCOMENTADO en la version final. Por motivos de prueba esta comentado
     # vars_table.vars_table[vars_table.current_function].pop("vars")
@@ -812,6 +840,13 @@ def p_np_end_function(p):
 
     # Reiniciar la Function Signature
     vars_table.function_signature = []
+
+def p_np_check_return(p):
+    'np_check_return :'
+    global has_return_stmt
+
+    if not has_return_stmt:
+        raise VarsTableException(f"Missing RETURN statement for function '{vars_table.current_function}'")
 
 def p_np_check_function_name(p):
     'np_check_function_name :'
@@ -830,8 +865,16 @@ def p_np_check_param(p):
     'np_check_param :'
     global param_counter, ip_counter, called_function
 
+    if not stack_operands:
+        raise VarsTableException(f"Incorrect argument syntax for function '{called_function}'")
+        
     argument = stack_operands.pop()
     argument_type = stack_types.pop()
+
+    # Revisar que el número de parámetro se encuentre dentro de las posiciones posibles de la lista
+    number_of_params = len(vars_table.vars_table[called_function]['PARAMETER_TABLE'])
+    if param_counter > number_of_params - 1:
+        raise VarsTableException(f"Too many arguments for function '{called_function}'")
 
     expected_type = vars_table.vars_table[called_function]['PARAMETER_TABLE'][param_counter]
 
