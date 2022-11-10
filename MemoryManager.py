@@ -56,7 +56,7 @@ class MemoryManager:
         self.local_ints = []
         self.local_temp_ints = []
         
-        self.local_temp_floats = []
+        self.local_floats = []
         self.local_temp_floats = []
         
         self.local_bools = []

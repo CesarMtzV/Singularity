@@ -2,12 +2,14 @@ from MemoryManager import MemoryManager
 import parserv2
 
 memory = MemoryManager()
+memory.local_temp_ints.append(None)
 
-memory.global_ints.append(None)
-memory.global_temp_ints.append(None)
+tables = parserv2.run()
+constants_table = tables[0]
+vars_table = tables[1]
 
-constants_table = parserv2.run()
-print(constants_table)
+print(vars_table)
+
 for type in constants_table:
     for constant in constants_table[type]:
         if type == 'int':
@@ -19,6 +21,9 @@ for type in constants_table:
         if type == 'string':
             memory.const_strings.append(constant)
 
+for var in vars_table['global']['vars']:
+    if vars_table['global']['vars'][var]['type'] == 'int':
+        memory.global_ints.append(None)
 
 def getAddress(addr):
     
@@ -54,6 +59,16 @@ def getAddress(addr):
         if memory.global_temp_strings[addr-8000] == None:
             return
         return memory.global_temp_strings[addr-8000]
+    
+    elif 9000<=addr<10000:
+        if memory.local_ints[addr-9000] == None:
+            return
+        return memory.local_ints[addr-9000]
+    elif 10000<=addr<11000:
+        if memory.local_temp_ints[addr-10000] == None:
+            return
+        return memory.local_temp_ints[addr-10000]
+    
     elif 17000<=addr<18000:
         if memory.const_ints[addr-17000] == None:
             return
@@ -96,6 +111,14 @@ with open("output.sgo") as file:
                 memory.global_floats[res-3000] = getAddress(left) + getAddress(right)
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left) + getAddress(right)
+            elif 9000<= res <1000:
+                memory.local_ints[res-9000] = getAddress(left) + getAddress(right)
+            elif 10000<= res <11000:
+                memory.local_temp_ints[res-10000] = getAddress(left) + getAddress(right)
+            elif 11000<= res <12000:
+                memory.local_floats[res-9000] = getAddress(left) + getAddress(right)
+            elif 12000<= res <13000:
+                memory.local_temp_floats[res-10000] = getAddress(left) + getAddress(right)
         elif operator == '-':
             if 1000<= res <2000:
                 memory.global_ints[res-1000] = getAddress(left) - getAddress(right)
@@ -105,6 +128,14 @@ with open("output.sgo") as file:
                 memory.global_floats[res-3000] = getAddress(left) - getAddress(right)
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left) - getAddress(right)
+            elif 9000<= res <1000:
+                memory.local_ints[res-9000] = getAddress(left) - getAddress(right)
+            elif 10000<= res <11000:
+                memory.local_temp_ints[res-10000] = getAddress(left) - getAddress(right)
+            elif 11000<= res <12000:
+                memory.local_floats[res-9000] = getAddress(left) - getAddress(right)
+            elif 12000<= res <13000:
+                memory.local_temp_floats[res-10000] = getAddress(left) - getAddress(right)
         elif operator == '*':
             if 1000<= res <2000:
                 memory.global_ints[res-1000] = getAddress(left) * getAddress(right)
@@ -114,6 +145,14 @@ with open("output.sgo") as file:
                 memory.global_floats[res-3000] = getAddress(left) * getAddress(right)
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left) * getAddress(right)
+            elif 9000<= res <1000:
+                memory.local_ints[res-9000] = getAddress(left) * getAddress(right)
+            elif 10000<= res <11000:
+                memory.local_temp_ints[res-10000] = getAddress(left) * getAddress(right)
+            elif 11000<= res <12000:
+                memory.local_floats[res-9000] = getAddress(left) * getAddress(right)
+            elif 12000<= res <13000:
+                memory.local_temp_floats[res-10000] = getAddress(left) * getAddress(right)
         elif operator == '/':
             if 1000<= res <2000:
                 memory.global_ints[res-1000] = getAddress(left) / getAddress(right)
@@ -123,6 +162,14 @@ with open("output.sgo") as file:
                 memory.global_floats[res-3000] = getAddress(left) / getAddress(right)
             elif 4000<= res <5000:
                 memory.global_temp_floats = getAddress(left) / getAddress(right)
+            elif 9000<= res <1000:
+                memory.local_ints[res-9000] = getAddress(left) / getAddress(right)
+            elif 10000<= res <11000:
+                memory.local_temp_ints[res-10000] = getAddress(left) / getAddress(right)
+            elif 11000<= res <12000:
+                memory.local_floats[res-9000] = getAddress(left) / getAddress(right)
+            elif 12000<= res <13000:
+                memory.local_temp_floats[res-10000] = getAddress(left) / getAddress(right)
         elif operator == '=':
             if 1000<= res <2000:
                 memory.global_ints[res-1000] = getAddress(left) 
@@ -132,6 +179,14 @@ with open("output.sgo") as file:
                 memory.global_floats[res-3000] = getAddress(left)
             elif 4000<= res <5000:
                 memory.global_temp_floats[res-4000] = getAddress(left)
+            elif 9000<= res < 1000:
+                memory.local_ints[res-9000] = getAddress(left)
+            elif 10000<=res<11000:
+                memory.local_temp_ints[res-10000] = getAddress(left)
+            elif 11000<= res <12000:
+                memory.local_floats[res-9000] = getAddress(left)
+            elif 12000<= res <13000:
+                memory.local_temp_floats[res-10000] = getAddress(left)
         elif operator == 'output':
             print("Output from VM.py")
             print(getAddress(res))

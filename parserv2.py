@@ -701,7 +701,7 @@ def run():
             print("Finished printing from parserv2.py")
             print("---------------------------------")
             
-            return vars_table.constants_table
+            return [vars_table.constants_table,vars_table.vars_table]
     
     
 if __name__ == '__main__':
