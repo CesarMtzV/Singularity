@@ -12,7 +12,7 @@ vars_table = VariablesTable()
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
 
-temp = {}
+num_temps = {'int': 0, 'float': 0, 'bool': 0, 'string': 0, 'pointer': 0} # Local Temps Table
 
 ## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
 stack_operators = []
@@ -575,6 +575,7 @@ def p_np_add_plusminus(p):
             quad_list.append(Quadruple(operator, left_operand, right_operand, result))
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -600,6 +601,7 @@ def p_np_add_multiplydivision(p):
             quad_list.append(Quadruple(operator, left_operand, right_operand, result))
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
         
@@ -625,6 +627,7 @@ def p_np_add_conditionals(p):
             quad_list.append(Quadruple(operator, left_operand, right_operand, result))
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -650,6 +653,7 @@ def p_np_add_and(p):
             quad_list.append(Quadruple(operator, left_operand, right_operand, result))
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -675,6 +679,7 @@ def p_np_add_or(p):
             quad_list.append(Quadruple(operator, left_operand, right_operand, result))
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
         
@@ -701,7 +706,7 @@ def run():
             print("Finished printing from parserv2.py")
             print("---------------------------------")
             
-            return [vars_table.constants_table,vars_table.vars_table]
+            return [vars_table.constants_table,vars_table.vars_table, num_temps]
     
     
 if __name__ == '__main__':

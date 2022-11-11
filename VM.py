@@ -4,9 +4,13 @@ import parserv2
 memory = MemoryManager()
 memory.local_temp_ints.append(None)
 
+
 tables = parserv2.run()
 constants_table = tables[0]
 vars_table = tables[1]
+num_temps = tables[2]
+
+print(num_temps)
 
 print(vars_table)
 
@@ -24,6 +28,17 @@ for type in constants_table:
 for var in vars_table['global']['vars']:
     if vars_table['global']['vars'][var]['type'] == 'int':
         memory.global_ints.append(None)
+        
+
+for i in range(0, num_temps['int']):
+    memory.local_temp_ints.append(None)
+for i in range(0, num_temps['float']):
+    memory.local_temp_floats.append(None)
+for i in range(0, num_temps['bool']):
+    memory.local_temp_bools.append(None)
+for i in range(0, num_temps['string']):
+    memory.local_temp_strings.append(None)
+
 
 def getAddress(addr):
     
