@@ -124,6 +124,7 @@ def p_funcion_main(t):
     '''
     funcion_main : MAIN np_start_main LPAREN RPAREN LCURLY bloque RCURLY
     '''
+    # np_start_main : guardar el número de cuadruplo para el GOTO y agregar el main como una función VOID
 
 def p_funciones(t):
     '''
@@ -422,9 +423,11 @@ def p_factor(t):
 
 def p_factor_1(t):
     '''
-    factor_1    : LPAREN exp RPAREN
+    factor_1    : LPAREN np_add_fondo_falso exp RPAREN np_remove_fondo_falso
                     | epsilon
     '''
+    # np_add_fondo_falso : agregar un '(' a la pila de operadores
+    # np_remove_fondo_falso : quitar el '(' de la pila de operadores
 
 def p_factor_2(t):
     '''
@@ -738,6 +741,17 @@ def p_np_add_or(p):
         else:
             raise TypeError("Type Mismatch")
 
+def p_np_add_fondo_falso(p):
+    'np_add_fondo_falso :'
+
+    stack_operators.append("(")
+
+def p_np_remove_fondo_falso(p):
+    'np_remove_fondo_falso :'
+
+    stack_operators.pop()
+
+
 def p_np_generate_write_quad(p):
     'np_generate_write_quad :'
     global ip_counter
@@ -914,6 +928,8 @@ def p_np_goto_main(p):
 def p_np_start_main(p):
     'np_start_main :'
     global ip_counter
+
+    vars_table.add_function(p[-1], True)
 
     return_addr = stack_jumps.pop()
 
