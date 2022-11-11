@@ -652,7 +652,7 @@ def p_np_add_conditionals(p):
     'np_add_conditionals :'
     global ip_counter
 
-    if stack_operators and (stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == "=>" or stack_operators[-1] == "<" or stack_operators[-1] == "=<"):
+    if stack_operators and (stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == ">=" or stack_operators[-1] == "<" or stack_operators[-1] == "<="):
         operator = stack_operators.pop()
         
         right_operand = stack_operands.pop()
@@ -768,7 +768,7 @@ def p_np_condicion_gotof(p):
 
     exp_type = stack_types.pop()
     if exp_type != 'bool':
-        raise TypeError('Type Mismatch in the IF condition')
+        raise TypeError(f"Type Mismatch in the IF condition. Expected 'bool' but received '{exp_type}'")
     else:
         result = stack_operands.pop()
         # Generar el GOTOF con el salto pendiente
