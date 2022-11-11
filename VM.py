@@ -206,6 +206,7 @@ with open("output.sgo") as file:
             print("Output from VM.py")
             print(getAddress(res))
             
+            
                 
                  
                 
