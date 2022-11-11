@@ -32,8 +32,6 @@ with open("output.sgo") as file:
         quad = [operator, left, right, res]
         quad_list.append(quad)
 
-print(quad_list)
-
 for type in constants_table:
     for constant in constants_table[type]:
         if type == 'int':
@@ -285,27 +283,6 @@ while current < len(quad_list):
             memory.local_bools[res-13000] = getAddress(left) >= getAddress(right)
         elif 14000<= res <15000:
             memory.local_temp_bools[res-14000] = getAddress(left) >= getAddress(right)
-    elif operator == '<=':
-        if 1000<= res <2000:
-            memory.global_ints[res-1000] = getAddress(left) <= getAddress(right)
-        elif 2000<= res <3000:
-            memory.global_temp_ints[res-2000] = getAddress(left) <= getAddress(right)
-        elif 3000<= res <4000:
-            memory.global_floats[res-3000] = getAddress(left) <= getAddress(right)
-        elif 4000<= res <5000:
-            memory.global_temp_floats[res-4000] = getAddress(left) <= getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) <= getAddress(right)
-        elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) <= getAddress(right)
-        elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) <= getAddress(right)
-        elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) <= getAddress(right)
-        elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) <= getAddress(right)
-        elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) <= getAddress(right)
     elif operator == '<=':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) <= getAddress(right)
