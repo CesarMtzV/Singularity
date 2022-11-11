@@ -28,3 +28,12 @@
     -   Lectura, Escritura y Return
     -   Operaciones aritméticas
     -   Operaciones booleanas
+
+## Avance 5: Generación de Código de Funciones
+
+-   Se agregaron los puntos neurálgicos para la generación de estatutos no lineales:
+    -   IF
+    -   WHILE
+-   Se agregaron la mayoría de los puntos neurálgicos para la declaración y llamada de funciones
+    -   Falta terminar algunos puntos y solucionar bugs
+-   Se creó la maquina virtual y ya procesa el código de operacion de OUTPUT

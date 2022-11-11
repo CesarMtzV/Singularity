@@ -16,24 +16,25 @@ num_temps = {'int': 0, 'float': 0, 'bool': 0, 'string': 0, 'pointer': 0} # Local
 
 ## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
 stack_operators = []
-##se guardan las cosas con las que opero que son los IDs
 stack_operands = []
-## Se guardan los tipos
 stack_types = []
-# Se guardan los saltos
 stack_jumps = []
 
-##Se guardan los cuadruplos que se van generando
 quad_list = []
 
+# Variables Auxiliares
 is_void_function = False
+has_return_stmt = False
+ip_counter = 0
+param_counter = 0 # Número de parámetros que se mandan a la hora de llamar una funcion 
+called_function = None
 
 ################
 ### PROGRAMA ###
 ################
 def p_programa(t):
     '''
-    programa    : programa_1 cuerpo
+    programa    : np_goto_main programa_1 cuerpo
     '''
 
 def p_programa_1(t):
@@ -48,8 +49,13 @@ def p_programa_1(t):
 ##############
 def p_cuerpo(t):
     '''
-    cuerpo      :  cuerpo_2 cuerpo_1 np_end_global_scope funcion_main
+    cuerpo      :  np_end_global_scope cuerpo_2 cuerpo_1 funcion_main
     '''
+    global ip_counter
+
+    # Generar Quad del fin de programa
+    quad_list.append(Quadruple(ip_counter, "END", None, None, None))
+    ip_counter += 1
 
 def p_cuerpo_1(t):
     '''
@@ -119,8 +125,9 @@ def p_tipo_simple(t):
 #################
 def p_funcion_main(t):
     '''
-    funcion_main : MAIN LPAREN RPAREN LCURLY bloque RCURLY
+    funcion_main : MAIN np_start_main LPAREN RPAREN LCURLY bloque RCURLY
     '''
+    # np_start_main : guardar el número de cuadruplo para el GOTO y agregar el main como una función VOID
 
 def p_funciones(t):
     '''
@@ -128,10 +135,11 @@ def p_funciones(t):
                 | epsilon
     '''
 
+# TODO: Agregar NPs y funcionalidad a funciones tipo
 def p_function(t):
     '''
-    funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY 
-                | FUNCTION tipo_simple ID np_add_function LPAREN params RPAREN LCURLY vars_sup bloque RCURLY
+    funcion     : FUNCTION VOID ID np_add_void_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_end_function
+                | FUNCTION tipo_simple np_reset_is_void ID np_add_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_check_return np_end_function
                 | epsilon
     '''
 
@@ -182,17 +190,31 @@ def p_asigna(t):
     '''
     asigna      : ID np_add_operand ASSIGN np_add_operator exp SEMICOLON
     '''
+
+    global ip_counter
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
     result = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, operand, None, result))
+    quad_list.append(Quadruple(ip_counter, operator, operand, None, result))
+    ip_counter += 1
 
 
 def p_llamada(t):
     '''
-    llamada     : ID LPAREN llamada_1 RPAREN SEMICOLON
+    llamada     : ID np_check_function_name LPAREN llamada_1 np_check_last_param RPAREN SEMICOLON
     '''
+    # np_check_function_name : Revisar que la funcion existe en el directorio de funciones
+    # np_check_last_param : Revisar coherencia con el número de parámetros enviados
+    global ip_counter, param_counter
+
+    # Generar código de operación GOSUB
+    quad_list.append(Quadruple(ip_counter, "GOSUB", called_function, None, None))
+    ip_counter += 1
+
+    # Reiniciar el contador de parámetros
+    param_counter = 0
 
 def p_llamada_1(t):
     '''
@@ -202,8 +224,10 @@ def p_llamada_1(t):
 
 def p_llamada_2(t):
     '''
-    llamada_2   : exp llamada_3
+    llamada_2   : exp np_check_param np_increase_param_counter llamada_3
     '''
+    # np_check_param : Revisar si el tipo de parámetro enviado concuerda con la Function Signature
+    # np_increase_param_counter : Aumentar el contador de parámetros
 
 def p_llamada_3(t):
     '''
@@ -215,10 +239,13 @@ def p_lectura(t):
     '''
     lectura : INPUT np_add_operator CIN variable SEMICOLON
     '''
+    global ip_counter
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, None, None, operand))
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
 
 def p_escritura(t):
     '''
@@ -228,12 +255,8 @@ def p_escritura(t):
 
 def p_escritura_1(t):
     '''
-    escritura_1 : COUT np_add_write_operator escritura_2 escritura_3
+    escritura_1 : COUT np_add_write_operator escritura_2 np_generate_write_quad escritura_3
     '''
-    operator = stack_operators.pop()
-    operand = stack_operands.pop()
-
-    quad_list.append(Quadruple(operator, None, None, operand))
 
 def p_escritura_2(t):
     '''
@@ -249,18 +272,18 @@ def p_escritura_3(t):
 
 def p_condicion(t):
     '''
-    condicion : IF LPAREN exp RPAREN LCURLY bloque RCURLY condicion_1
+    condicion : IF LPAREN exp RPAREN np_condicion_gotof LCURLY bloque RCURLY condicion_1
     '''
 
 def p_condicion_1(t):
     '''
-    condicion_1 : ELSE LCURLY bloque RCURLY
-                | epsilon
+    condicion_1 : ELSE np_goto_else LCURLY bloque RCURLY np_end_condition
+                | epsilon np_end_condition
     '''
 
 def p_ciclo_w(t):
     '''
-    ciclo_w : WHILE LPAREN exp RPAREN LCURLY bloque RCURLY
+    ciclo_w : WHILE np_while_1 LPAREN exp RPAREN np_while_2 LCURLY bloque RCURLY np_while_3
     '''
 
 def p_ciclo_f(t):
@@ -272,10 +295,18 @@ def p_return(t):
     '''
     return  : RETURN np_add_operator exp SEMICOLON
     '''
+    global ip_counter, has_return_stmt
+
+    if is_void_function:
+        raise VarsTableException(f"Function '{vars_table.current_function}' is of type void. RETURN statement is not allowed")
+    
+    has_return_stmt = True
+
     operator = stack_operators.pop()
     operand = stack_operands.pop()
 
-    quad_list.append(Quadruple(operator, None, None, operand))
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
 
 ##############
 ### CLASES ###
@@ -395,9 +426,11 @@ def p_factor(t):
 
 def p_factor_1(t):
     '''
-    factor_1    : LPAREN exp RPAREN
+    factor_1    : LPAREN np_add_fondo_falso exp RPAREN np_remove_fondo_falso
                     | epsilon
     '''
+    # np_add_fondo_falso : agregar un '(' a la pila de operadores
+    # np_remove_fondo_falso : quitar el '(' de la pila de operadores
 
 def p_factor_2(t):
     '''
@@ -462,7 +495,11 @@ def p_np_add_function(p):
 
 def p_np_add_void_function(p):
     'np_add_void_function :'
+    global is_void_function
+    
     vars_table.add_function(p[-1], True) # p[-1] = nombre_funcion
+    is_void_function = True
+    
 
 # Adding a function's parameters to its symbol table
 def p_np_function_parameters(p):
@@ -554,7 +591,7 @@ def p_np_add_bool(p):
     
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
-    
+    global ip_counter
     
     if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == "-"):
         operator = stack_operators.pop()
@@ -571,8 +608,13 @@ def p_np_add_plusminus(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
             num_temps[result_type] +=1
@@ -581,6 +623,7 @@ def p_np_add_plusminus(p):
 
 def p_np_add_multiplydivision(p):
     'np_add_multiplydivision :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == '*' or stack_operators[-1] == "/"):
         operator = stack_operators.pop()
@@ -597,8 +640,13 @@ def p_np_add_multiplydivision(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
             num_temps[result_type] +=1
@@ -607,6 +655,7 @@ def p_np_add_multiplydivision(p):
         
 def p_np_add_conditionals(p):
     'np_add_conditionals :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == '==' or stack_operators[-1] == "!=" or stack_operators[-1] == ">" or stack_operators[-1] == "=>" or stack_operators[-1] == "<" or stack_operators[-1] == "=<"):
         operator = stack_operators.pop()
@@ -623,8 +672,13 @@ def p_np_add_conditionals(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
             num_temps[result_type] +=1
@@ -633,6 +687,7 @@ def p_np_add_conditionals(p):
 
 def p_np_add_and(p):
     'np_add_and :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == "&&"):
         operator = stack_operators.pop()
@@ -649,8 +704,13 @@ def p_np_add_and(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
             num_temps[result_type] +=1
@@ -659,6 +719,7 @@ def p_np_add_and(p):
 
 def p_np_add_or(p):
     'np_add_or :'
+    global ip_counter
 
     if stack_operators and (stack_operators[-1] == "||"):
         operator = stack_operators.pop()
@@ -675,13 +736,212 @@ def p_np_add_or(p):
         if result_type != 'error':
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
+
+                # Sumar contador de variable local en la función
+                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+
             # Generate Quad
-            quad_list.append(Quadruple(operator, left_operand, right_operand, result))
+            quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
+            ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
             num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
+
+def p_np_add_fondo_falso(p):
+    'np_add_fondo_falso :'
+
+    stack_operators.append("(")
+
+def p_np_remove_fondo_falso(p):
+    'np_remove_fondo_falso :'
+
+    stack_operators.pop()
+
+
+def p_np_generate_write_quad(p):
+    'np_generate_write_quad :'
+    global ip_counter
+
+    operator = stack_operators.pop()
+    operand = stack_operands.pop()
+
+    quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
+    ip_counter += 1
+
+def p_np_condicion_gotof(p):
+    'np_condicion_gotof :'
+    global ip_counter
+
+    exp_type = stack_types.pop()
+    if exp_type != 'bool':
+        raise TypeError('Type Mismatch in the IF condition')
+    else:
+        result = stack_operands.pop()
+        # Generar el GOTOF con el salto pendiente
+        quad_list.append(Quadruple(ip_counter, "GOTOF", result, None, None))
+        ip_counter += 1
+
+        stack_jumps.append(ip_counter - 1)
+
+def p_np_goto_else(p):
+    'np_goto_else :'
+    global ip_counter
+
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, None))
+    ip_counter += 1
+    
+    false = stack_jumps.pop()
+    stack_jumps.append(ip_counter - 1)
+
+    quad_list[false].result = ip_counter
+
+def p_np_end_condition(p):
+    'np_end_condition :'
+    global ip_counter
+
+    end = stack_jumps.pop()
+
+    quad_list[end].result = ip_counter
+
+def p_np_while_1(p):
+    'np_while_1 :'
+    global ip_counter
+
+    stack_jumps.append(ip_counter)
+
+def p_np_while_2(p):
+    'np_while_2 :'
+    global ip_counter
+
+    exp_type = stack_types.pop()
+    if exp_type != 'bool':
+        raise TypeError('Type Mismatch: WHILE conditions is not BOOL')
+    else:
+        result = stack_operands.pop()
+
+        quad_list.append(Quadruple(ip_counter, "GOTOF", result, None, None))
+        ip_counter += 1
+
+        stack_jumps.append(ip_counter - 1)
+
+def p_np_while_3(p):
+    'np_while_3 :'
+    global ip_counter
+
+    end = stack_jumps.pop()
+    return_quad = stack_jumps.pop()
+
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, return_quad))
+    ip_counter += 1
+
+    quad_list[end].result = ip_counter
+
+def p_np_set_function_quad(p):
+    'np_set_function_quad :'
+    global ip_counter
+
+    vars_table.vars_table[vars_table.current_function]["start_position"] = ip_counter
+
+def p_np_reset_is_void(p):
+    'np_reset_is_void :'
+    global is_void_function
+
+    is_void_function = False
+
+def p_np_end_function(p):
+    'np_end_function :'
+    global ip_counter, param_counter
+
+    # TODO: Esto debe estar DESCOMENTADO en la version final. Por motivos de prueba esta comentado
+    # vars_table.vars_table[vars_table.current_function].pop("vars")
+    
+    quad_list.append(Quadruple(ip_counter, "ENDFUNC", None, None, None))
+    ip_counter += 1
+
+    # Reiniciar la Function Signature
+    vars_table.function_signature = []
+
+def p_np_check_return(p):
+    'np_check_return :'
+    global has_return_stmt
+
+    if not has_return_stmt:
+        raise VarsTableException(f"Missing RETURN statement for function '{vars_table.current_function}'")
+
+def p_np_check_function_name(p):
+    'np_check_function_name :'
+    global ip_counter, called_function
+
+    called_function = p[-1]
+
+    if called_function not in vars_table.vars_table:
+        raise VarsTableException(f"The function you are trying to call does not exist: '{called_function}'")
+    
+    # Generar el codigo de operacion ERA
+    quad_list.append(Quadruple(ip_counter, "ERA", called_function, None, None))
+    ip_counter += 1
+
+def p_np_check_param(p):
+    'np_check_param :'
+    global param_counter, ip_counter, called_function
+
+    if not stack_operands:
+        raise VarsTableException(f"Incorrect argument syntax for function '{called_function}'")
+        
+    argument = stack_operands.pop()
+    argument_type = stack_types.pop()
+
+    # Revisar que el número de parámetro se encuentre dentro de las posiciones posibles de la lista
+    number_of_params = len(vars_table.vars_table[called_function]['PARAMETER_TABLE'])
+    if param_counter > number_of_params - 1:
+        raise VarsTableException(f"Too many arguments for function '{called_function}'")
+
+    expected_type = vars_table.vars_table[called_function]['PARAMETER_TABLE'][param_counter]
+
+    if not argument_type == expected_type:
+        raise TypeError(f"Type Mismatch: Expected '{expected_type}' but received '{argument_type}' for function '{called_function}'")
+    
+    # Generar código de operacion PARAMETER
+    quad_list.append(Quadruple(ip_counter, "PARAMETER", argument, None, param_counter + 1))
+    ip_counter += 1
+
+def p_np_increase_param_counter(p):
+    'np_increase_param_counter :'
+    global param_counter
+
+    param_counter += 1
+
+def p_np_check_last_param(p):
+    'np_check_last_param :'
+    global param_counter, called_function
+
+    # Coherencia en el número de parámetros
+    number_of_params = len(vars_table.vars_table[called_function]['PARAMETER_TABLE'])
+    if param_counter > number_of_params or param_counter < number_of_params:
+        raise VarsTableException(f"Incorrect number of arguments for function '{called_function}'")
+
+def p_np_goto_main(p):
+    'np_goto_main :'
+    global ip_counter
+
+    # Guardar posicion del cuadruplo para regresar
+    stack_jumps.append(ip_counter)
+
+    # Generar el GOTO
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, None))
+    ip_counter += 1
+
+def p_np_start_main(p):
+    'np_start_main :'
+    global ip_counter
+
+    vars_table.add_function(p[-1], True)
+
+    return_addr = stack_jumps.pop()
+
+    quad_list[return_addr].result = ip_counter
         
 yacc.yacc()
 
