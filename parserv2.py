@@ -288,7 +288,7 @@ def p_ciclo_w(t):
 
 def p_ciclo_f(t):
     '''
-    ciclo_f : FOR LPAREN ID IN RANGE LPAREN VAR_CONST_INT COMMA VAR_CONST_INT RPAREN RPAREN LCURLY bloque RCURLY
+    ciclo_f : FOR LPAREN ID np_for_check_id IN RANGE LPAREN VAR_CONST_INT np_add_int np_for_1 COMMA VAR_CONST_INT np_add_int np_for_2 RPAREN RPAREN LCURLY bloque RCURLY np_for_end
     '''
 
 def p_return(t):
@@ -837,6 +837,120 @@ def p_np_while_3(p):
     ip_counter += 1
 
     quad_list[end].result = ip_counter
+
+def p_np_for_check_id(p):
+    'np_for_check_id :'
+    # La variable que se usará como iterador
+    var_iterator = p[-1]
+
+    scope = vars_table.exists(var_iterator)
+
+    if vars_table.vars_table[scope]["vars"][var_iterator]["type"] != "int":
+        raise VarsTableException(f"Variable '{var_iterator}' is NOT of type INT")
+    
+    stack_operands.append(vars_table.vars_table[scope]["vars"][var_iterator]["memory_position"])
+    stack_types.append(vars_table.vars_table[scope]["vars"][var_iterator]["type"])
+
+    # Agregar el número 1 a la tabla de constantes para usarlo en el aumento del iterador
+    if 1 not in vars_table.constants_table["int"]:
+        vars_table.constants_table["int"][1] = {
+            "memory_position" : memory.malloc(1, "constant", "int")
+        }
+
+def p_np_for_1(p):
+    'np_for_1 :'
+    global ip_counter
+
+    # Obtener la posicion de memoria de la constante
+    range_start_memory = vars_table.constants_table["int"][p[-2]]["memory_position"]
+    
+    # Se eliminan porque el NP add_int agrega los enteros a las pilas, pero en este caso no los ocupamos
+    stack_operands.pop()
+    stack_types.pop()
+    
+    # Variable entera declarada como iterador
+    iterator = stack_operands[-1]
+    
+    # Variable de control temporal
+    control_temp = memory.malloc(1, "local_temp", "int")
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["int"] += 1
+
+    stack_operands.append(control_temp)
+    stack_types.append("int")
+
+    # Asignar el valor del inicio del FOR a la variable iterador
+    quad_list.append(Quadruple(ip_counter, "=", range_start_memory, None, iterator))
+    ip_counter += 1
+    
+    # Asignar el valor del iterador a la variable temporal
+    quad_list.append(Quadruple(ip_counter, "=", iterator, None, control_temp))
+    ip_counter += 1
+
+def p_np_for_2(p):
+    'np_for_2 :'
+    global ip_counter
+
+    range_end_memory = vars_table.constants_table["int"][p[-2]]["memory_position"]
+    
+    control_temp = memory.malloc(1, "local_temp", "int")
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["int"] += 1
+    
+    condition_temp = memory.malloc(1, "local_temp", "bool")
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["bool"] += 1
+
+    # Se eliminan porque el NP add_int agrega los enteros a las pilas, pero en este caso no los ocupamos
+    stack_operands.pop()
+    stack_types.pop()
+
+    prev_control = stack_operands[-1]
+
+    quad_list.append(Quadruple(ip_counter, "=", range_end_memory, None, control_temp))
+    ip_counter += 1
+    
+    quad_list.append(Quadruple(ip_counter, "<=", prev_control, control_temp, condition_temp))
+    ip_counter += 1
+    stack_jumps.append(ip_counter - 1)
+    
+    quad_list.append(Quadruple(ip_counter, "GOTOF", condition_temp, None, None))
+    ip_counter += 1
+    stack_jumps.append(ip_counter - 1)
+    
+
+def p_np_for_end(p):
+    'np_for_end :'
+    global ip_counter
+
+    # Variables
+    prev_control = stack_operands.pop()
+    iterator = stack_operands.pop()
+    temp = memory.malloc(1, "local_temp", "int")
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["int"] += 1
+    
+    # Limpiar stack de tipos
+    stack_types.pop()
+    stack_types.pop()
+
+    step = vars_table.constants_table["int"][1]["memory_position"]
+    
+    # Sumarle 1 a la variable de control
+    quad_list.append(Quadruple(ip_counter, "+", step, prev_control, temp))
+    ip_counter += 1
+    
+    # Asignarle el valor de temp a la variable de control
+    quad_list.append(Quadruple(ip_counter, "=", temp, None, prev_control))
+    ip_counter += 1
+
+    # Asignarle el valor de variable de control al iterador
+    quad_list.append(Quadruple(ip_counter, "=", prev_control, None, iterator))
+    ip_counter += 1
+
+    # GOTO para regresar a la condición del FOR
+    gotof = stack_jumps.pop()
+    for_condition = stack_jumps.pop()
+    quad_list.append(Quadruple(ip_counter, "GOTO", None, None, for_condition))
+    ip_counter += 1
+
+    quad_list[gotof].result = ip_counter
 
 def p_np_set_function_quad(p):
     'np_set_function_quad :'
