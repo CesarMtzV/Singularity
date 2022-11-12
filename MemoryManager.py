@@ -43,7 +43,12 @@ class MemoryManager:
 
     def malloc(self, size :int, scope: str, type :str) -> int:
         """
-        Retorna un entero que representa la memoria donde esta guardada la variable
+        Retorna un entero que representa la memoria donde esta guardada la variable.
+        Scopes disponibles:
+        - global
+        - local
+        - local_temp
+        - constant
         """
 
         # TODO: Checar si tambien cambiar temporales globales

@@ -119,7 +119,14 @@ class VariablesTable:
 
             else:
                 raise VarsTableException(f"Local variable '{current_var}' already exists")
-
+    
+    def exists(self, var):
+        if var in self.vars_table["global"]["vars"]:
+            return "global"
+        elif var in self.vars_table[self.current_function]["vars"]:
+            return self.current_function
+        else:
+            raise VarsTableException(f"Variable '{var}' does not exist")
 
 class VarsTableException(Exception):
     """Clase personalizada para los tipos de errores en la tabla de variables"""
