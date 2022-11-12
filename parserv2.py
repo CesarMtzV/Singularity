@@ -26,6 +26,12 @@ ip_counter = 0
 param_counter = 0 # Número de parámetros que se mandan a la hora de llamar una funcion 
 called_function = None
 
+# Variables para calculos de arreglos
+current_var = None
+is_array = False
+is_matrix = False
+R = 1
+
 ################
 ### PROGRAMA ###
 ################
@@ -83,19 +89,19 @@ def p_vars(t):
 
 def p_vars_1(t):
     '''
-    vars_1      : SEMICOLON vars_4
+    vars_1      : SEMICOLON np_assign_normal_var_memory vars_4
                 | vars_2
     '''
 
 def p_vars_2(t):
     '''
-    vars_2      : LBRACKET VAR_CONST_INT RBRACKET vars_3
+    vars_2      : LBRACKET np_is_array VAR_CONST_INT np_calculate_r RBRACKET vars_3
     '''
 
 def p_vars_3(t):
     '''
-    vars_3      : LBRACKET VAR_CONST_INT RBRACKET SEMICOLON vars_4 
-                | SEMICOLON vars_4
+    vars_3      : LBRACKET np_is_matrix VAR_CONST_INT np_calculate_r RBRACKET SEMICOLON np_end_matrix vars_4 
+                | SEMICOLON np_end_array vars_4
     '''
 
 def p_vars_4(t):
@@ -506,7 +512,54 @@ def p_np_function_parameters(p):
 # Adding a variable to the symbols table
 def p_np_add_variable(p):
     'np_add_variable :'
+    global current_var, R
+    current_var = p[-1]
+    R = 1
     vars_table.add_variable(p)
+
+def p_np_assign_normal_var_memory(p):
+    'np_assign_normal_var_memory :'
+    global current_var
+    # Variable normal
+    vars_table.assign_memory(current_var, 1, 0)
+
+def p_np_is_array(p):
+    'np_is_array :'
+    global is_array
+    is_array = True
+
+def p_np_calculate_r(p):
+    'np_calculate_r :'
+    global R
+
+    # Guardar el límite en la tabla de constantes
+    limit = p[-1]
+    if limit not in vars_table.constants_table["int"]:
+        vars_table.constants_table["int"][limit] = {
+            "memory_position" : memory.malloc(1, "constant", "int")
+        }
+    
+    # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
+    R = R * (limit + 1)
+
+def p_np_end_array(p):
+    'np_end_array :'
+    global current_var
+
+    # Generar la memoria para el arreglo
+    vars_table.assign_memory(current_var, R, 0)
+
+def p_np_is_matrix(p):
+    'np_is_matrix :'
+    global is_matrix
+
+    is_matrix = True
+    is_array = False
+
+def p_np_end_matrix(p):
+    'np_end_matrix :'
+    
+    vars_table.assign_memory(current_var, R, 0)
 
 def p_np_end_global_scope(p):
     'np_end_global_scope :'
