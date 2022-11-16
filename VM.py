@@ -62,7 +62,6 @@ for i in range(0, num_temps['bool']):
 for i in range(0, num_temps['string']):
     memory.local_temp_strings.append(None)
 
-
 def getAddress(addr): 
     if 1000<=addr<2000:
         if memory.global_ints[addr-1000] == None:
@@ -385,14 +384,14 @@ while current < len(quad_list):
             memory.global_bools[res-5000] = getAddress(left) 
         elif 6000<= res <7000:
             memory.global_temp_bools[res-6000] = getAddress(left)
-        elif 9000<= res < 1000:
+        elif 9000<= res < 10000:
             memory.local_ints[res-9000] = getAddress(left)
-        elif 10000<=res<11000:
+        elif 10000<=res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left)
         elif 11000<= res <12000:
-            memory.local_floats[res-9000] = getAddress(left)
+            memory.local_floats[res-11000] = getAddress(left)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-10000] = getAddress(left)
+            memory.local_temp_floats[res-12000] = getAddress(left)
     elif operator == 'output':
         print("Output from VM.py")
         print(getAddress(res))

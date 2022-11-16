@@ -885,6 +885,8 @@ def p_np_for_1(p):
     # Asignar el valor del iterador a la variable temporal
     quad_list.append(Quadruple(ip_counter, "=", iterator, None, control_temp))
     ip_counter += 1
+    
+    num_temps['int'] += 1
 
 def p_np_for_2(p):
     'np_for_2 :'
@@ -914,6 +916,9 @@ def p_np_for_2(p):
     quad_list.append(Quadruple(ip_counter, "GOTOF", condition_temp, None, None))
     ip_counter += 1
     stack_jumps.append(ip_counter - 1)
+    
+    num_temps['int'] += 1
+    num_temps['bool'] += 1
     
 
 def p_np_for_end(p):
@@ -951,6 +956,8 @@ def p_np_for_end(p):
     ip_counter += 1
 
     quad_list[gotof].result = ip_counter
+    
+    num_temps['int'] += 1
 
 def p_np_set_function_quad(p):
     'np_set_function_quad :'
