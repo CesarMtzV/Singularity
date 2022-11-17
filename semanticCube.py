@@ -65,7 +65,24 @@ class SemanticCube():
                     '!=': 'error',
                     '&&': 'error',
                     '||': 'error'
+                },
+                'pointer': {
+                    '+': 'int',
+                    '-': 'int',
+                    '*': 'int',
+                    '/': 'int',
+                    '%': 'int',
+                    '^': 'int',
+                    '>': 'bool',
+                    '>=': 'bool',
+                    '<': 'bool',
+                    '<=': 'bool',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'error',
+                    '||': 'error'
                 }
+
             },
             'float': {
                 'int': {
@@ -131,7 +148,23 @@ class SemanticCube():
                     '!=': 'error',
                     '&&': 'error',
                     '||': 'error'
-                }
+                },
+                'pointer': {
+                    '+': 'float',
+                    '-': 'float',
+                    '*': 'float',
+                    '/': 'float',
+                    '%': 'float',
+                    '^': 'float',
+                    '>': 'bool',
+                    '>=': 'bool',
+                    '<': 'bool',
+                    '<=': 'bool',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'error',
+                    '||': 'error'
+                },
             },
             'bool': {
                 'int': {
@@ -197,7 +230,23 @@ class SemanticCube():
                     '!=': 'error',
                     '&&': 'error',
                     '||': 'error'
-                }
+                },
+                'pointer': {
+                    '+': 'error',
+                    '-': 'error',
+                    '*': 'error',
+                    '/': 'error',
+                    '%': 'error',
+                    '^': 'error',
+                    '>': 'error',
+                    '>=': 'error',
+                    '<': 'error',
+                    '<=': 'error',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'bool',
+                    '||': 'bool'
+                },
             },
             'string': {
                 'int': {
@@ -261,6 +310,94 @@ class SemanticCube():
                     '<=': 'error',
                     '==': 'error',
                     '!=': 'error',
+                    '&&': 'error',
+                    '||': 'error'
+                },
+                'pointer': {
+                    '+': 'error',
+                    '-': 'error',
+                    '*': 'error',
+                    '/': 'error',
+                    '%': 'error',
+                    '^': 'error',
+                    '>': 'error',
+                    '>=': 'error',
+                    '<': 'error',
+                    '<=': 'error',
+                    '==': 'error',
+                    '!=': 'error',
+                    '&&': 'error',
+                    '||': 'error'
+                }
+            },
+            'pointer': {
+                'int': {
+                    '+': 'int',
+                    '-': 'int',
+                    '*': 'int',
+                    '/': 'int',
+                    '>': 'boo.',
+                    '>=': 'bool',
+                    '<': 'bool',
+                    '<=': 'bool',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'error',
+                    '||': 'error'
+                },
+                'float': {
+                    '+': 'float',
+                    '-': 'float',
+                    '*': 'float',
+                    '/': 'float',
+                    '>': 'bool',
+                    '>=': 'bool',
+                    '<': 'bool',
+                    '<=': 'bool',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'error',
+                    '||': 'error'
+                },
+                'bool': {
+                    '+': 'error',
+                    '-': 'error',
+                    '*': 'error',
+                    '/': 'error',
+                    '>': 'error',
+                    '>=': 'error',
+                    '<': 'error',
+                    '<=': 'error',
+                    '==': 'bool',
+                    '!=': 'bool',
+                    '&&': 'bool',
+                    '||': 'bool'
+                },
+                'string': {
+                    '+': 'error',
+                    '-': 'error',
+                    '*': 'error',
+                    '/': 'error',
+                    '>': 'error',
+                    '>=': 'error',
+                    '<': 'error',
+                    '<=': 'error',
+                    '==': 'error',
+                    '!=': 'error',
+                    '&&': 'error',
+                    '||': 'error'
+                },
+                'pointer': {
+                    '+': 'pointer',
+                    '-': 'pointer',
+                    '*': 'pointer',
+                    '/': 'pointer',
+                    '>': 'bool',
+                    '>=': 'bool',
+                    '<': 'bool',
+                    '<=': 'bool',
+                    '==': 'bool',
+                    '!=': 'bool',
                     '&&': 'error',
                     '||': 'error'
                 }

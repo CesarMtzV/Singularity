@@ -638,7 +638,8 @@ def p_np_verify_range(p):
 
         # Sumarle al límite la dirección base
         temp_pointer = memory.malloc(1, "local_temp", "pointer")
-        # TODO: Agregar al número de temporales
+        vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
+        
         current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
         current_operand = stack_operands.pop()
         stack_types.pop()
@@ -648,6 +649,37 @@ def p_np_verify_range(p):
 
         stack_operands.append(temp_pointer)
         stack_types.append("pointer")
+    elif dim == 2: 
+        limit = vars_table.vars_table[scope]["vars"][current_var]["limit_1"]
+        up_limit = vars_table.constants_table["int"][limit]["memory_position"]
+        
+        limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
+        
+        low_limit = vars_table.constants_table["int"][0]["memory_position"]
+
+        # Crear cuádruplo de VER para la primer dimensión
+        quad_list.append(Quadruple(ip_counter, "VER", stack_operands[-1], low_limit, up_limit))
+        ip_counter += 1
+
+        operand = stack_operands.pop()
+        stack_types.pop()
+
+        m1 = int(((limit + 1) * (limit_2 + 1)) / (limit + 1))
+        
+        if m1 not in vars_table.constants_table["int"]:
+            vars_table.constants_table["int"][m1] = {
+                "memory_position" : memory.malloc(1, "constant", "int")
+            }
+        m1_memory = vars_table.constants_table["int"][m1]["memory_position"]
+        
+        temp_1 = memory.malloc(1, "local_temp", "int")
+        vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["int"] += 1
+
+        quad_list.append(Quadruple(ip_counter, "*", operand, m1_memory, temp_1))
+        ip_counter += 1
+
+        stack_operands.append(temp_1)
+        stack_types.append("int")
         
 
 def p_np_verify_range_matrix(p):
@@ -655,9 +687,6 @@ def p_np_verify_range_matrix(p):
     global ip_counter, current_var
 
     scope = vars_table.exists(current_var)
-
-    limit_1 = vars_table.vars_table[scope]["vars"][current_var]["limit_1"]
-    limit_1_memory = vars_table.constants_table["int"][limit_1]["memory_position"]
 
     limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
     limit_2_memory = vars_table.constants_table["int"][limit_2]["memory_position"]
@@ -667,38 +696,21 @@ def p_np_verify_range_matrix(p):
     operand_2 = stack_operands.pop()
     stack_types.pop()
 
-    operand_1 = stack_operands.pop()
-    stack_types.pop()
-
-    # Generar cuádruplo de verificación
-    quad_list.append(Quadruple(ip_counter, "VER", operand_1, low_limit, limit_1_memory))
-    ip_counter += 1
-
-    m1 = int(((limit_1 + 1) * (limit_2 + 1)) / (limit_1 + 1))
-    if m1 not in vars_table.constants_table["int"]:
-        vars_table.constants_table["int"][m1] = {
-            "memory_position" : memory.malloc(1, "constant", "int")
-        }
-    m1_memory = vars_table.constants_table["int"][m1]["memory_position"]
-
-    temp_1 = memory.malloc(1, "local_temp", "int")
+    # temp_1 = memory.malloc(1, "local_temp", "int")
     temp_2 = memory.malloc(1, "local_temp", "int")
     pointer = memory.malloc(1, "local_temp", "pointer")
-    # TODO: Agregar al número de temporales
     
-    # s1*m1
-    quad_list.append(Quadruple(ip_counter, "*", operand_1, m1_memory, temp_1))
-    ip_counter += 1
-
-    stack_operands.append(temp_1)
-    stack_types.append("int")
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
+    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["int"] += 1
 
     # Verificar el segúndo límite
     quad_list.append(Quadruple(ip_counter, "VER", operand_2, low_limit, limit_2_memory))
     ip_counter += 1
 
     # s1*m1 + s2
-    quad_list.append(Quadruple(ip_counter, "+", operand_2, temp_1, temp_2))
+    temp_1 = stack_operands.pop()
+    stack_types.pop()
+    quad_list.append(Quadruple(ip_counter, "+", temp_1, operand_2, temp_2))
     ip_counter += 1
 
     # Sumar dirección base de variable

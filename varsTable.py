@@ -42,8 +42,8 @@ class VariablesTable:
                 "vars": {},
                 "start_position" : None,
                 "size" : {
-                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
-                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
+                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0},
+                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 , "pointer" : 0},
                 }
             }
 
