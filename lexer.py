@@ -9,7 +9,7 @@ tokens = (
     'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
     'COUT', 'CIN', 'MAIN', 'IN', 'RANGE', 'INHERITS', 'ATTRIBUTES', 'METHODS', 'METHOD', 'CONSTRUCTORS',
     'GREATER_THAN', 'LESS_THAN_OR_EQUAL', 'GREATER_THAN_OR_EQUAL', 'EQUAL',
-    'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING',
+    'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING', 'EXECUTE'
 )
 
 t_ignore = ' \t'
@@ -70,6 +70,7 @@ t_NOT_EQUAL                 = r'\!\='
 t_AND                       = r'\&\&'
 t_OR                        = r'\|\|'
 t_VAR_CONST_STRING          = r'".*"'
+t_EXECUTE                   = r'\@'
 
 def t_ID(t):
     r'[a-zA-Z]([a-zA-Z0-9])*'
