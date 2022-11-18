@@ -10,6 +10,10 @@ vars_table = tables[1]
 num_temps = tables[2]
 
 quad_list = []
+function_name = ' '
+jumpStack = []
+paramList = []
+paramStack = []
 
 with open("output.sgo") as file:
     for line in file:
@@ -18,7 +22,7 @@ with open("output.sgo") as file:
         operator = temp[3]
         
         left = temp[5]
-        if left != 'None':
+        if left.isdigit():
             left = int(temp[5])
             
         right = temp[7]
@@ -53,13 +57,13 @@ for var in vars_table['global']['vars']:
     if vars_table['global']['vars'][var]['type'] == 'string':
         memory.global_strings.append(None)
         
-for i in range(0, num_temps['int']):
+for i in range(0, vars_table['main']['size']['vars_temp']['int']):
     memory.local_temp_ints.append(None)
-for i in range(0, num_temps['float']):
+for i in range(0, vars_table['main']['size']['vars_temp']['float']):
     memory.local_temp_floats.append(None)
-for i in range(0, num_temps['bool']):
+for i in range(0, vars_table['main']['size']['vars_temp']['bool']):
     memory.local_temp_bools.append(None)
-for i in range(0, num_temps['string']):
+for i in range(0, vars_table['main']['size']['vars_temp']['string']):
     memory.local_temp_strings.append(None)
 
 def getAddress(addr): 
@@ -165,9 +169,9 @@ while current < len(quad_list):
         elif 10000<= res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left) + getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-9000] = getAddress(left) + getAddress(right)
+            memory.local_floats[res-11000] = getAddress(left) + getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-10000] = getAddress(left) + getAddress(right)
+            memory.local_temp_floats[res-12000] = getAddress(left) + getAddress(right)
     elif operator == '-':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) - getAddress(right)
@@ -182,9 +186,9 @@ while current < len(quad_list):
         elif 10000<= res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left) - getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-9000] = getAddress(left) - getAddress(right)
+            memory.local_floats[res-11000] = getAddress(left) - getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-10000] = getAddress(left) - getAddress(right)
+            memory.local_temp_floats[res-12000] = getAddress(left) - getAddress(right)
     elif operator == '*':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) * getAddress(right)
@@ -199,9 +203,9 @@ while current < len(quad_list):
         elif 10000<= res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left) * getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-9000] = getAddress(left) * getAddress(right)
+            memory.local_floats[res-11000] = getAddress(left) * getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-10000] = getAddress(left) * getAddress(right)
+            memory.local_temp_floats[res-12000] = getAddress(left) * getAddress(right)
     elif operator == '/':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) / getAddress(right)
@@ -216,9 +220,9 @@ while current < len(quad_list):
         elif 10000<= res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left) / getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-9000] = getAddress(left) / getAddress(right)
+            memory.local_floats[res-11000] = getAddress(left) / getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-10000] = getAddress(left) / getAddress(right)
+            memory.local_temp_floats[res-12000] = getAddress(left) / getAddress(right)
     elif operator == '>':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) > getAddress(right)
@@ -392,6 +396,10 @@ while current < len(quad_list):
             memory.local_floats[res-11000] = getAddress(left)
         elif 12000<= res <13000:
             memory.local_temp_floats[res-12000] = getAddress(left)
+        elif 13000<= res <14000:
+            memory.local_bools[res-13000] = getAddress(left)
+        elif 14000<= res <15000:
+            memory.local_temp_bools[res-14000] = getAddress(left) 
     elif operator == 'output':
         print("Output from VM.py")
         print(getAddress(res))
@@ -402,6 +410,56 @@ while current < len(quad_list):
         if (getAddress(left) == False):
             current = res
             continue
+    elif operator == "GOSUB":
+        jump = left
+        jumpStack.append(current)
+        function_name = jump
+        
+        current = vars_table[function_name]['start_position']
+        continue
+    elif operator == "ERA":
+        function_name = left;
+        
+        for i in range (0,vars_table[function_name]['size']['vars']['int']):
+            memory.local_ints.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars']['float']):
+            memory.local_floats.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars']['bool']):
+            memory.local_bools.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars']['string']):
+            memory.local_strings.append(None)
+        
+        for i in range (0,vars_table[function_name]['size']['vars_temp']['int']):
+            memory.local_temp_ints.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars_temp']['float']):
+            memory.local_temp_floats.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars_temp']['bool']):
+            memory.local_temp_bools.append(None)
+        for i in range (0,vars_table[function_name]['size']['vars_temp']['string']):
+            memory.local_temp_strings.append(None)
+        
+        paramList = list(vars_table[function_name]['vars'])
+        paramStack.append(paramList)
+            
+    elif operator == "PARAMETER":
+        param = left
+        index = int(res)-1
+        
+        if (len(paramStack[-1]) > 0):
+            if 1000<= param <2000 or 9000<= param <11000 or 17000<= param <18000:
+                memory.local_ints[vars_table[function_name]['vars'][paramStack[-1][index]]['memory_position']-9000] = getAddress(param)
+            if 3000<= param <4000 or 11000<= param <13000 or 18000<= param <19000:
+                memory.local_floats[vars_table[function_name]['vars'][paramStack[-1][index]]['memory_position']-11000] = getAddress(param)
+            if 5000<= param <6000 or 13000<= param <15000 or 19000<= param <20000:
+                memory.local_bools[vars_table[function_name]['vars'][paramStack[-1][index]]['memory_position']-13000] = getAddress(param)
+            if 7000<= param <8000 or 15000<= param <17000 or 20000<= param <21000:
+                memory.local_strings[vars_table[function_name]['vars'][paramStack[-1][index]]['memory_position']-15000] = getAddress(param)
+    elif operator == "ENDFUNC":
+        current = jumpStack.pop() + 1
+        paramStack.pop()
+        continue
+    
+    
     current=current+1
             
             

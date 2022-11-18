@@ -593,7 +593,7 @@ def p_np_add_plusminus(p):
     'np_add_plusminus :'
     global ip_counter
     
-    if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == "-"):
+    if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == '-'):
         operator = stack_operators.pop()
         
         right_operand = stack_operands.pop()
