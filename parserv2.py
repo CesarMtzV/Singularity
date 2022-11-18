@@ -180,7 +180,7 @@ def p_bloque(t):
 def p_estatuto(T):
     '''
     estatuto    : asigna
-                | llamada
+                | llamada SEMICOLON
                 | lectura
                 | escritura
                 | condicion
@@ -194,9 +194,8 @@ def p_asigna(t):
     '''
     asigna      : variable ASSIGN np_add_operator exp SEMICOLON
     '''
-
     global ip_counter
-
+    
     operator = stack_operators.pop()
     operand = stack_operands.pop()
     result = stack_operands.pop()
@@ -207,7 +206,7 @@ def p_asigna(t):
 
 def p_llamada(t):
     '''
-    llamada     : ID np_check_function_name LPAREN llamada_1 np_check_last_param RPAREN SEMICOLON
+    llamada     : EXECUTE ID np_check_function_name LPAREN llamada_1 np_check_last_param RPAREN
     '''
     # np_check_function_name : Revisar que la funcion existe en el directorio de funciones
     # np_check_last_param : Revisar coherencia con el número de parámetros enviados
@@ -216,6 +215,20 @@ def p_llamada(t):
     # Generar código de operación GOSUB
     quad_list.append(Quadruple(ip_counter, "GOSUB", called_function, None, None))
     ip_counter += 1
+
+    # Parche guadalupano
+    if called_function in vars_table.vars_table["global"]["vars"]:
+        function_type = vars_table.vars_table["global"]["vars"][called_function]["type"]
+        function_result = memory.malloc(1, "local_temp", function_type)
+
+        quad_list.append(Quadruple(ip_counter, "=", called_function, None, function_result))
+        ip_counter += 1
+
+        stack_operands.append(function_result)
+        stack_types.append(function_type)
+
+        # Sumar al número de variables en función
+        vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][function_type] += 1
 
     # Reiniciar el contador de parámetros
     param_counter = 0
@@ -308,6 +321,7 @@ def p_return(t):
 
     operator = stack_operators.pop()
     operand = stack_operands.pop()
+    stack_types.pop()
 
     quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
     ip_counter += 1
@@ -448,13 +462,13 @@ def p_factor_2(t):
 
 def p_factor_3(t):
     '''
-    factor_3    : variable
+    factor_3    : llamada
                 | epsilon
     '''
 
 def p_factor_4(t):
     '''
-    factor_4    : llamada
+    factor_4    : variable
                 | epsilon
     '''
 
@@ -482,9 +496,9 @@ def p_epsilon(t):
 
 def p_error(t):
     if not t:
-        print("Syntax error: Unexpected END OF FILE")
+        raise ParserException("Syntax error: Unexpected END OF FILE")
     else:
-        print(f"Syntax error: Unexpected {t.type}({t.value}) on line {t.lineno} ")
+        raise ParserException(f"Syntax error: Unexpected {t.type}({t.value}) on line {t.lineno} ")
 
 
 ##########################
@@ -1264,6 +1278,11 @@ def p_np_start_main(p):
     return_addr = stack_jumps.pop()
 
     quad_list[return_addr].result = ip_counter
+
+class ParserException(Exception):
+    """Clase personalizada para los tipos de errores en el parser"""
+
+    pass
         
 yacc.yacc()
 
