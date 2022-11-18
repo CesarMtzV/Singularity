@@ -390,7 +390,7 @@ while current < len(quad_list):
             memory.global_temp_bools[res-6000] = getAddress(left)
         elif 9000<= res < 10000:
             memory.local_ints[res-9000] = getAddress(left)
-        elif 10000<=res <11000:
+        elif 10000<= res <11000:
             memory.local_temp_ints[res-10000] = getAddress(left)
         elif 11000<= res <12000:
             memory.local_floats[res-11000] = getAddress(left)
@@ -417,6 +417,19 @@ while current < len(quad_list):
         
         current = vars_table[function_name]['start_position']
         continue
+    elif operator == "return":
+        currentType = vars_table[function_name]['type']
+        
+        position = int(vars_table['global']['vars'][function_name]['memory_position'])
+        
+        if currentType == 'int':
+            memory.global_ints[position-1000] = getAddress(res)
+
+        
+        current = jumpStack.pop() + 1
+        paramStack.pop()
+        continue
+        
     elif operator == "ERA":
         function_name = left;
         

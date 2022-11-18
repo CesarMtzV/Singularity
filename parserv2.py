@@ -224,7 +224,7 @@ def p_llamada(t):
         function_type = vars_table.vars_table["global"]["vars"][called_function]["type"]
         function_result = memory.malloc(1, "local_temp", function_type)
 
-        quad_list.append(Quadruple(ip_counter, "=", called_function, None, function_result))
+        quad_list.append(Quadruple(ip_counter, "=", vars_table.vars_table["global"]["vars"][called_function]["memory_position"], None, function_result))
         ip_counter += 1
 
         stack_operands.append(function_result)
