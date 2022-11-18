@@ -42,8 +42,8 @@ class VariablesTable:
                 "vars": {},
                 "start_position" : None,
                 "size" : {
-                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
-                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 },
+                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0},
+                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 , "pointer" : 0},
                 }
             }
 
@@ -101,7 +101,7 @@ class VariablesTable:
             if current_var not in self.vars_table["global"]["vars"]:
                 self.vars_table["global"]["vars"][current_var] = {
                     "type" : self.current_type,
-                    "memory_position" : memory.malloc(1, "global", self.current_type)
+                    "dimensions" : 0
                 }
             else:
                 raise VarsTableException(f"Global variable '{current_var}' already exists")
@@ -111,14 +111,33 @@ class VariablesTable:
                 # Agregar a la tabla de variables de la funcion
                 self.vars_table[self.current_function]["vars"][current_var] = {
                     "type" : self.current_type,
-                    "memory_position" : memory.malloc(1, "local", self.current_type)
+                    "dimensions" : 0
                 }
 
                 # Sumar al contador de variables
-                self.vars_table[self.current_function]["size"]["vars"][self.current_type] += 1
+                # self.vars_table[self.current_function]["size"]["vars"][self.current_type] += 1
 
             else:
                 raise VarsTableException(f"Local variable '{current_var}' already exists")
+    
+    def assign_memory(self, var :str, size :int, dim :int):
+        # Revisar si el current_scope es global y la variable ya se habia declarado
+        if self.global_scope:
+            if var in self.vars_table["global"]["vars"]:
+                self.vars_table["global"]["vars"][var]["memory_position"] = memory.malloc(size, "global", self.current_type)
+            else:
+                raise VarsTableException(f"Global variable '{var}' does not exist")
+        else:
+            if var in self.vars_table[self.current_function]["vars"]:
+
+                # Agregar memoria a la variable
+                self.vars_table[self.current_function]["vars"][var]["memory_position"] = memory.malloc(size, "local", self.current_type)
+
+                # Sumar al contador de variables
+                self.vars_table[self.current_function]["size"]["vars"][self.current_type] += size
+
+            else:
+                raise VarsTableException(f"Local variable '{var}' does not exist")
     
     def exists(self, var):
         if var in self.vars_table["global"]["vars"]:
@@ -127,6 +146,12 @@ class VariablesTable:
             return self.current_function
         else:
             raise VarsTableException(f"Variable '{var}' does not exist")
+    
+    def add_dimensions(self, var):
+        if var in self.vars_table["global"]["vars"]:
+            self.vars_table["global"]["vars"][var]["dimensions"] += 1
+        elif var in self.vars_table[self.current_function]["vars"]:
+            self.vars_table[self.current_function]["vars"][var]["dimensions"] += 1
 
 class VarsTableException(Exception):
     """Clase personalizada para los tipos de errores en la tabla de variables"""

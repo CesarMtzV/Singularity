@@ -70,6 +70,9 @@ class MemoryManager:
         self.const_bools = []
         self.const_strings = []
 
+        # Memoria pointer
+        self.pointer            = 21000
+
     def malloc(self, size :int, scope: str, type :str) -> int:
         """
         Retorna un entero que representa la memoria donde esta guardada la variable.
@@ -219,6 +222,11 @@ class MemoryManager:
                     return assigned_address
                 else:
                     raise MemoryManagerException("Too many LOCAL TEMP STRING variables")
+            elif type == "pointer":
+                if self.pointer < 22000:
+                    assigned_address = self.pointer
+                    self.pointer += size
+                    return assigned_address
 
         elif scope == "constant":
             # TODO: Revisar si tambien hay que agregar variables temporales para constantes
@@ -269,6 +277,8 @@ class MemoryManager:
 
         self.local_string       = 15000
         self.local_temp_string  = 16000
+
+        self.pointer            = 21000
 
 
 class MemoryManagerException(Exception):
