@@ -24,6 +24,9 @@ class VariablesTable:
         self.global_scope = True
         self.function_signature = []
         self.current_class = None
+        self.attr_id = 0
+        self.current_method = None
+        self.method_signature = []
 
     def add_function(self, function_name :str, is_void_function :bool) -> None:
         """
@@ -160,7 +163,7 @@ class VariablesTable:
             self.vars_table[class_name] = {
                 "type" : "class",
                 "attributes" : {},
-                "constructors" : {},
+                "constructor" : [],
                 "methods" : {},
                 "size" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0},
                 
@@ -174,11 +177,85 @@ class VariablesTable:
         if attribute_name not in self.vars_table[self.current_class]["attributes"]:
             self.vars_table[self.current_class]["attributes"][attribute_name] = {
                 "type" : self.current_type,
-                "memory_position" : memory.malloc(1, "local", self.current_type)
+                "memory_position" : memory.malloc(1, "local", self.current_type),
+                "id" : self.attr_id
             }
+            # Crear la firma del constructor
+            self.vars_table[self.current_class]["constructor"].append(self.current_type)
+            
+            # Id para asignar variables
+            self.attr_id += 1
+
+            # Sumar el número de variables usadas
             self.vars_table[self.current_class]["size"][self.current_type] += 1
         else:
             raise VarsTableException(f"Attribute '{attribute_name}' already exists")
+    
+    def add_method(self, method_name :str, is_void_method :bool) -> None:
+        """
+        Agregar un método a la clase
+        """
+
+        self.current_method = method_name
+
+        if is_void_method:
+            self.current_type = "void"
+        
+        if self.current_method not in self.vars_table[self.current_class]["methods"]:
+
+            # Agregar el método
+            self.vars_table[self.current_class]["methods"][self.current_method] = {
+                "type": self.current_type,
+                "vars": {},
+                "start_position" : None,
+                "size" : {
+                    "vars" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0},
+                    "vars_temp" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0 , "pointer" : 0},
+                }
+            }
+
+            # Parche Guadalupano para métodos tipo
+            if not is_void_method:
+                # Revisar si ya existe un atributo con el nombre del método
+                if self.current_method not in self.vars_table[self.current_class]["attributes"]:
+                    self.vars_table[self.current_class]["attributes"][self.current_method] = {
+                        "type": self.current_type,
+                        "memory_position": memory.malloc(1, "local", self.current_type)
+                    }
+                    # Sumar el número de variables usadas
+                    self.vars_table[self.current_class]["size"][self.current_type] += 1
+                else:
+                    raise VarsTableException(f"Method '{self.current_method}' already exists as another attribute")
+
+        else:
+            raise VarsTableException(
+                f"Function '{self.current_function}' has already been declared!"
+            )
+
+    def add_method_parameters(self, param_name :str):
+        """
+        Agregar los parametros de un método a la tabla de variables y tabla de parámetros
+        """
+
+        if param_name not in self.vars_table[self.current_class]["methods"][self.current_method]["vars"]:
+            
+            # Tabla de variables
+            self.vars_table[self.current_class]["methods"][self.current_method]["vars"][param_name] = {
+                "type": self.current_type,
+                "memory_position" : memory.malloc(1, "local", self.current_type)
+            }
+
+            # Sumar el número de variables usadas
+            self.vars_table[self.current_class]["size"][self.current_type] += 1
+
+            # Tabla de parámetros
+            self.method_signature.append(self.current_type)
+            self.vars_table[self.current_class]["methods"][self.current_method]["PARAMETER_TABLE"] = self.method_signature
+
+        else:
+            raise VarsTableException(
+                f"Parameter '{param_name}' has already been declared as another parameter or attribute"
+            )
 
 class VarsTableException(Exception):
     """Clase personalizada para los tipos de errores en la tabla de variables"""

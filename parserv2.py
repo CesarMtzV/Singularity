@@ -33,6 +33,11 @@ is_array = False
 is_matrix = False
 R = 1
 
+# Variables auxiliares para clases
+temp_constructor_signature = []
+is_void_method = False
+is_class = False
+
 ################
 ### PROGRAMA ###
 ################
@@ -146,6 +151,7 @@ def p_function(t):
                 | FUNCTION tipo_simple np_reset_is_void ID np_add_function LPAREN params RPAREN LCURLY vars_sup np_set_function_quad bloque RCURLY np_check_return np_end_function
                 | epsilon
     '''
+    # np_set_function_quad : Guardar en la tabla de variables el quadruplo de inicio de la función
 
 
 ##############
@@ -339,13 +345,22 @@ def p_clase(t):
 
 def p_constructor(t):
     '''
-    constructor : CONSTRUCTORS COLON constructores
+    constructor : CONSTRUCTOR COLON ID np_check_class_name LPAREN constructor_params np_check_constructor_signature RPAREN SEMICOLON
     '''
+    # np_check_class_name : Revisa que el constructor tenga el mismo nombre que la clase
+    # np_check_constructor_signature : Revisa que los parametros tengan el mismo orden que la firma del constructor
 
-def p_constructores(t):
+def p_constructor_params(t):
     '''
-    constructores   : ID LPAREN constructor_params RPAREN SEMICOLON constructores
-                    | epsilon
+    constructor_params  : tipo_simple np_add_constructor_param constructor_params_1
+                        | epsilon
+    '''
+    # np_add_constructor_param : Agrega el tipo a una lista temporal para despues validarlo con la firma correcta del constructor
+
+def p_constructor_params_1(t):
+    '''
+    constructor_params_1    : COMMA constructor_params
+                            | epsilon
     '''
 
 def p_attrs(t):
@@ -361,28 +376,18 @@ def p_metodos(t):
 
 def p_metodo(t):
     '''
-    metodo      : METHOD tipo_simple ID LPAREN metodo_params RPAREN LCURLY bloque RCURLY metodo
-                | METHOD VOID ID LPAREN metodo_params RPAREN LCURLY bloque RCURLY metodo
+    metodo      : METHOD VOID ID np_add_void_method LPAREN metodo_params RPAREN LCURLY np_set_method_start_quad bloque RCURLY np_end_method metodo
+                | METHOD tipo_simple ID np_add_method LPAREN metodo_params RPAREN LCURLY np_set_method_start_quad bloque RCURLY np_end_method metodo
                 | epsilon
     '''
-
-def p_constructor_params(t):
-    '''
-    constructor_params  : tipo_simple ID constructor_params_1
-                        | epsilon
-    '''
-
-def p_constructor_params_1(t):
-    '''
-    constructor_params_1    : COMMA metodo_params
-                            | epsilon
-    '''
+    # np_set_method_start_quad : Guardar el cuádruplo de inicio del método
 
 def p_metodo_params(t):
     '''
-    metodo_params   : tipo_simple ID metodo_params_1
+    metodo_params   : tipo_simple ID np_add_method_param metodo_params_1
                     | epsilon
     '''
+    # np_add_method_param : Agregar el parámetro a su método correspondiente y agregar su tipo a la Method Signature
 
 def p_metodo_params_1(t):
     '''
@@ -537,13 +542,17 @@ def p_error(t):
 # Adding a function to the functions directory
 def p_np_add_function(p):
     'np_add_function :'
+    global is_class
+
+    is_class = False
     vars_table.add_function(p[-1], False) # p[-1] = nombre_funcion
     pass
 
 def p_np_add_void_function(p):
     'np_add_void_function :'
-    global is_void_function
+    global is_void_function, is_class
     
+    is_class = False
     vars_table.add_function(p[-1], True) # p[-1] = nombre_funcion
     is_void_function = True
     
@@ -780,18 +789,25 @@ def p_np_add_operand(p):
     'np_add_operand :'
     global current_var
 
+    current_operand = p[-1]
+
     # Revisar si el operando existe en memoria global
-    if p[-1] in vars_table.vars_table["global"]["vars"]:
-        memory_pos = vars_table.vars_table["global"]["vars"][p[-1]]["memory_position"]
+    if current_operand in vars_table.vars_table["global"]["vars"]:
+        memory_pos = vars_table.vars_table["global"]["vars"][current_operand]["memory_position"]
         stack_operands.append(memory_pos)
-        stack_types.append(vars_table.vars_table["global"]["vars"][p[-1]]["type"])
-        current_var = p[-1]
+        stack_types.append(vars_table.vars_table["global"]["vars"][current_operand]["type"])
+        current_var = current_operand
     # Revisar si el operando existe en memoria local
-    elif p[-1] in vars_table.vars_table[vars_table.current_function]["vars"]:
-        memory_pos = vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["memory_position"]
+    elif vars_table.current_function != "" and current_operand in vars_table.vars_table[vars_table.current_function]["vars"]:
+        memory_pos = vars_table.vars_table[vars_table.current_function]["vars"][current_operand]["memory_position"]
         stack_operands.append(memory_pos)
-        stack_types.append(vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["type"])
-        current_var = p[-1]
+        stack_types.append(vars_table.vars_table[vars_table.current_function]["vars"][current_operand]["type"])
+        current_var = current_operand
+    elif current_operand in vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["vars"]:
+        memory_pos = vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["vars"][current_operand]["memory_position"]
+        stack_operands.append(memory_pos)
+        stack_types.append(vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["vars"][current_operand]["type"])
+        current_var = current_operand
     # Mostrar error cuando el operando no existe
     else:
         raise VarsTableException(f"The variable \'{p[-1]}\' does not exist")
@@ -865,8 +881,12 @@ def p_np_add_plusminus(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
 
-                # Sumar contador de variable local en la función
-                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+                if is_class:
+                    # Sumar contador de variable local en el método de la clase
+                    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["size"]["vars_temp"][result_type] += 1    
+                else:
+                    # Sumar contador de variable local en la función
+                    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
 
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
@@ -896,8 +916,12 @@ def p_np_add_multiplydivision(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
 
-                # Sumar contador de variable local en la función
-                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+                if is_class:
+                    # Sumar contador de variable local en el método de la clase
+                    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["size"]["vars_temp"][result_type] += 1    
+                else:
+                    # Sumar contador de variable local en la función
+                    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
 
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
@@ -927,8 +951,12 @@ def p_np_add_conditionals(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
 
-                # Sumar contador de variable local en la función
-                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+                if is_class:
+                    # Sumar contador de variable local en el método de la clase
+                    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["size"]["vars_temp"][result_type] += 1    
+                else:
+                    # Sumar contador de variable local en la función
+                    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
 
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
@@ -958,8 +986,12 @@ def p_np_add_and(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
 
-                # Sumar contador de variable local en la función
-                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+                if is_class:
+                    # Sumar contador de variable local en el método de la clase
+                    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["size"]["vars_temp"][result_type] += 1    
+                else:
+                    # Sumar contador de variable local en la función
+                    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
 
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
@@ -989,8 +1021,12 @@ def p_np_add_or(p):
             if not vars_table.global_scope:
                 result = memory.malloc(1, "local_temp", result_type)
 
-                # Sumar contador de variable local en la función
-                vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
+                if is_class:
+                    # Sumar contador de variable local en el método de la clase
+                    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["size"]["vars_temp"][result_type] += 1    
+                else:
+                    # Sumar contador de variable local en la función
+                    vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"][result_type] += 1
 
             # Generate Quad
             quad_list.append(Quadruple(ip_counter, operator, left_operand, right_operand, result))
@@ -1310,9 +1346,10 @@ def p_np_start_main(p):
 
 def p_np_add_class(p):
     'np_add_class :'
+    global is_class
 
     class_name = p[-1]
-
+    is_class = True
     vars_table.add_class(class_name)
 
 def p_np_add_attribute(p):
@@ -1321,6 +1358,68 @@ def p_np_add_attribute(p):
     attribute_name = p[-1]
 
     vars_table.add_attribute(attribute_name)
+
+def p_np_check_class_name(p):
+    'np_check_class_name :'
+
+    constructor_name = p[-1]
+
+    if constructor_name not in vars_table.vars_table:
+        raise VarsTableException(f"Constructor '{constructor_name}' must be the same as '{vars_table.current_class}'")
+
+def p_np_add_constructor_param(p):
+    'np_add_constructor_param :'
+    global temp_constructor_signature
+
+    temp_constructor_signature.append(vars_table.current_type)
+
+def p_np_check_constructor_signature(p):
+    'np_check_constructor_signature :'
+
+    constructor_signature = vars_table.vars_table[vars_table.current_class]["constructor"]
+
+    if temp_constructor_signature != constructor_signature:
+        raise ParserException(f"Constructor for class '{vars_table.current_class}' does not match the declared attributes. \nExpected {constructor_signature} but received {temp_constructor_signature}")
+
+def p_np_add_void_method(p):
+    'np_add_void_method :'
+    global is_void_function
+    
+    method_name = p[-1]
+
+    vars_table.add_method(method_name, True)
+    is_void_function = True
+
+def p_np_add_method(p):
+    'np_add_method :'
+
+    method_name = p[-1]
+    vars_table.add_method(method_name, False)
+    is_void_method = False
+
+def p_np_add_method_param(p):
+    'np_add_method_param :'
+
+    vars_table.add_method_parameters(p[-1])
+
+def p_np_set_method_start_quad(p):
+    'np_set_method_start_quad :'
+    global ip_counter
+
+    vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["start_position"] = ip_counter
+
+def p_np_end_method(p):
+    'np_end_method :'
+    global ip_counter
+
+    # TODO: Descomentar esto en la versión final
+    # vars_table.vars_table[vars_table.current_class]["methods"].pop()
+
+    quad_list.append(Quadruple(ip_counter, "ENDMETH", None, None, None))
+    ip_counter += 1
+
+    # Reiniciar la Method Signature
+    vars_table.method_signature = []
 
 class ParserException(Exception):
     """Clase personalizada para los tipos de errores en el parser"""

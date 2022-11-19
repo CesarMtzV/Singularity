@@ -7,7 +7,7 @@ tokens = (
     'COLON', 'COMMA', 'LCURLY', 'RCURLY', 'ASSIGN', 'LPAREN','RPAREN',
     'LBRACKET', 'RBRACKET', 'AND', 'OR', 'CLASS', 'TRUE', 'FALSE',
     'PLUS', 'POW', 'MOD', 'MINUS', 'MULTIPLY', 'DIVIDE', 'LESS_THAN', 'POWER',
-    'COUT', 'CIN', 'MAIN', 'IN', 'RANGE', 'INHERITS', 'ATTRIBUTES', 'METHODS', 'METHOD', 'CONSTRUCTORS',
+    'COUT', 'CIN', 'MAIN', 'IN', 'RANGE', 'INHERITS', 'ATTRIBUTES', 'METHODS', 'METHOD', 'CONSTRUCTOR',
     'GREATER_THAN', 'LESS_THAN_OR_EQUAL', 'GREATER_THAN_OR_EQUAL', 'EQUAL',
     'NOT_EQUAL', 'ID', 'VAR_CONST_INT', 'VAR_CONST_FLOAT', 'VAR_CONST_STRING', 'EXECUTE'
 )
@@ -31,7 +31,7 @@ reserved = {
     'attributes': 'ATTRIBUTES',
     'methods': 'METHODS',
     'method': 'METHOD',
-    'constructors': 'CONSTRUCTORS',
+    'constructor': 'CONSTRUCTOR',
     'input': 'INPUT',
     'output': 'OUTPUT',
     'if': 'IF',
