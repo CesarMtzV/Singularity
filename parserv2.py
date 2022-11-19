@@ -332,8 +332,8 @@ def p_return(t):
 
 def p_clase(t):
     '''
-    clase       : CLASS ID LCURLY ATTRIBUTES COLON vars constructor metodos RCURLY clase
-                | CLASS ID INHERITS ID LCURLY ATTRIBUTES COLON vars constructor metodos RCURLY clase
+    clase       : CLASS ID np_add_class LCURLY ATTRIBUTES COLON attrs constructor metodos RCURLY clase
+                | CLASS ID INHERITS ID LCURLY ATTRIBUTES COLON attrs constructor metodos RCURLY clase
                 | epsilon
     '''
 
@@ -344,8 +344,13 @@ def p_constructor(t):
 
 def p_constructores(t):
     '''
-    constructores   : ID LPAREN RPAREN LCURLY bloque RCURLY constructores
-                    | ID LPAREN params RPAREN LCURLY bloque RCURLY constructores
+    constructores   : ID LPAREN constructor_params RPAREN SEMICOLON constructores
+                    | epsilon
+    '''
+
+def p_attrs(t):
+    '''
+    attrs           : tipo_simple ID np_add_attribute SEMICOLON attrs
                     | epsilon
     '''
 
@@ -356,9 +361,33 @@ def p_metodos(t):
 
 def p_metodo(t):
     '''
-    metodo      : METHOD tipo_simple ID LPAREN params RPAREN LCURLY bloque RCURLY metodo
-                | METHOD VOID ID LPAREN params RPAREN LCURLY bloque RCURLY metodo
+    metodo      : METHOD tipo_simple ID LPAREN metodo_params RPAREN LCURLY bloque RCURLY metodo
+                | METHOD VOID ID LPAREN metodo_params RPAREN LCURLY bloque RCURLY metodo
                 | epsilon
+    '''
+
+def p_constructor_params(t):
+    '''
+    constructor_params  : tipo_simple ID constructor_params_1
+                        | epsilon
+    '''
+
+def p_constructor_params_1(t):
+    '''
+    constructor_params_1    : COMMA metodo_params
+                            | epsilon
+    '''
+
+def p_metodo_params(t):
+    '''
+    metodo_params   : tipo_simple ID metodo_params_1
+                    | epsilon
+    '''
+
+def p_metodo_params_1(t):
+    '''
+    metodo_params_1     : COMMA metodo_params
+                        | epsilon
     '''
 
 
@@ -1278,6 +1307,20 @@ def p_np_start_main(p):
     return_addr = stack_jumps.pop()
 
     quad_list[return_addr].result = ip_counter
+
+def p_np_add_class(p):
+    'np_add_class :'
+
+    class_name = p[-1]
+
+    vars_table.add_class(class_name)
+
+def p_np_add_attribute(p):
+    'np_add_attribute :'
+
+    attribute_name = p[-1]
+
+    vars_table.add_attribute(attribute_name)
 
 class ParserException(Exception):
     """Clase personalizada para los tipos de errores en el parser"""

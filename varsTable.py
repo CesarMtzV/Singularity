@@ -23,6 +23,7 @@ class VariablesTable:
         self.current_array_size = 0
         self.global_scope = True
         self.function_signature = []
+        self.current_class = None
 
     def add_function(self, function_name :str, is_void_function :bool) -> None:
         """
@@ -152,6 +153,32 @@ class VariablesTable:
             self.vars_table["global"]["vars"][var]["dimensions"] += 1
         elif var in self.vars_table[self.current_function]["vars"]:
             self.vars_table[self.current_function]["vars"][var]["dimensions"] += 1
+    
+    def add_class(self, class_name):
+        """Agregar una clase al mismo nivel que las funciones y el scope global"""
+        if class_name not in self.vars_table:
+            self.vars_table[class_name] = {
+                "type" : "class",
+                "attributes" : {},
+                "constructors" : {},
+                "methods" : {},
+                "size" : { "int" : 0, "float" : 0, "bool" : 0, "string" : 0},
+                
+            }
+            self.current_class = class_name
+        else:
+            raise VarsTableException(f"Class '{class_name}' already exists")
+    
+    def add_attribute(self, attribute_name):
+        """Agregar un atributo a la clase actual"""
+        if attribute_name not in self.vars_table[self.current_class]["attributes"]:
+            self.vars_table[self.current_class]["attributes"][attribute_name] = {
+                "type" : self.current_type,
+                "memory_position" : memory.malloc(1, "local", self.current_type)
+            }
+            self.vars_table[self.current_class]["size"][self.current_type] += 1
+        else:
+            raise VarsTableException(f"Attribute '{attribute_name}' already exists")
 
 class VarsTableException(Exception):
     """Clase personalizada para los tipos de errores en la tabla de variables"""
