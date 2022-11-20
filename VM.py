@@ -52,14 +52,17 @@ for var in vars_table['global']['vars']:
         if 'limit_1' in vars_table['global']['vars'][var]:
             for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])+1):
                 memory.global_ints.append(None)
+        if 'limit_2' in vars_table['global']['vars'][var]:
+            for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])*int(vars_table['global']['vars'][var]['limit_2'])+1):
+                memory.global_ints.append(None)
         else:
             memory.global_ints.append(None)
     if vars_table['global']['vars'][var]['type'] == 'float':
-        if 'limit_2' in vars_table['global']['vars'][var]:
-            for i in (0,(vars_table['global']['vars'][var]['limit_1']*vars_table['global']['vars'][var]['limit_2'])):
+        if 'limit_1' in vars_table['global']['vars'][var]:
+            for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])+1):
                 memory.global_floats.append(None)
-        elif 'limit_1' in vars_table['global']['vars'][var]:
-            for i in (0,vars_table['global']['vars'][var]['limit_1']):
+        if 'limit_2' in vars_table['global']['vars'][var]:
+            for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])*int(vars_table['global']['vars'][var]['limit_2'])+1):
                 memory.global_floats.append(None)
         else:
             memory.global_floats.append(None)
@@ -496,7 +499,10 @@ while current < len(quad_list):
         current = jumpStack.pop() + 1
         paramStack.pop()
         continue
-    elif operator == "VER":        
+    elif operator == "VER":     
+        print(getAddress(left))
+        print(getAddress(right))   
+        print(getAddress(res))
         if getAddress(left) < getAddress(right) or getAddress(left) > getAddress(res):
             print("index out of bounds")
     

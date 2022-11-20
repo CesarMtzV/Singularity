@@ -584,7 +584,7 @@ def p_np_calculate_r(p):
         }
     
     # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
-    R = R * (limit + 1) -1
+    R = R * (limit)
 
 def p_np_end_array(p):
     'np_end_array :'
@@ -736,10 +736,14 @@ def p_np_verify_range_matrix(p):
 
     # Sumar dirección base de variable
     current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
-    quad_list.append(Quadruple(ip_counter, "+", temp_2, current_var_memory, pointer))
+    
+    if current_var_memory not in vars_table.constants_table['int']:
+        vars_table.constants_table['int'][current_var_memory] = {'memory_position' : memory.malloc(1,'constant','int')}
+        
+    quad_list.append(Quadruple(ip_counter, "+", temp_2, vars_table.constants_table['int'][current_var_memory]['memory_position'], pointer))
     ip_counter += 1
-
-    stack_operands.append(pointer)
+    
+    stack_operands.append(f'({pointer})')
     stack_types.append("pointer")
 
 def p_np_end_global_scope(p):
