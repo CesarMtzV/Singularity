@@ -213,6 +213,8 @@ while current < len(quad_list):
             memory.local_floats[res-11000] = getAddress(left) - getAddress(right)
         elif 12000<= res <13000:
             memory.local_temp_floats[res-12000] = getAddress(left) - getAddress(right)
+        elif 21000<= res <22000:
+            memory.pointers[res-21000] = getAddress(left) - getAddress(right)
     elif operator == '*':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) * getAddress(right)
@@ -230,6 +232,8 @@ while current < len(quad_list):
             memory.local_floats[res-11000] = getAddress(left) * getAddress(right)
         elif 12000<= res <13000:
             memory.local_temp_floats[res-12000] = getAddress(left) * getAddress(right)
+        elif 21000<= res <22000:
+            memory.pointers[res-21000] = getAddress(left) * getAddress(right)
     elif operator == '/':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) / getAddress(right)
@@ -247,6 +251,8 @@ while current < len(quad_list):
             memory.local_floats[res-11000] = getAddress(left) / getAddress(right)
         elif 12000<= res <13000:
             memory.local_temp_floats[res-12000] = getAddress(left) / getAddress(right)
+        elif 21000<= res <22000:
+            memory.pointers[res-21000] = getAddress(left) / getAddress(right)
     elif operator == '>':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) > getAddress(right)
@@ -499,10 +505,7 @@ while current < len(quad_list):
         current = jumpStack.pop() + 1
         paramStack.pop()
         continue
-    elif operator == "VER":     
-        print(getAddress(left))
-        print(getAddress(right))   
-        print(getAddress(res))
+    elif operator == "VER":
         if getAddress(left) < getAddress(right) or getAddress(left) > getAddress(res):
             print("index out of bounds")
     

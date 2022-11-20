@@ -572,16 +572,18 @@ def p_np_calculate_r(p):
         vars_table.vars_table[scope]["vars"][current_var]["limit_1"] = limit - 1
         
         # Guardar el límite en tabla de constantes
-        vars_table.constants_table["int"][limit - 1] = {
-            "memory_position" : memory.malloc(1, "constant", "int")
-        }
+        if limit - 1 not in vars_table.constants_table["int"]:
+            vars_table.constants_table["int"][limit - 1] = {
+                "memory_position" : memory.malloc(1, "constant", "int")
+            }
     elif dim == 2:
         vars_table.vars_table[scope]["vars"][current_var]["limit_2"] = limit - 1
         
         # Guardar el límite en tabla de constantes
-        vars_table.constants_table["int"][limit - 1] = {
-            "memory_position" : memory.malloc(1, "constant", "int")
-        }
+        if limit - 1 not in vars_table.constants_table["int"]:
+            vars_table.constants_table["int"][limit - 1] = {
+                "memory_position" : memory.malloc(1, "constant", "int")
+            }
     
     # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
     R = R * (limit)
