@@ -80,7 +80,8 @@ class VariablesTable:
             # Tabla de variables
             self.vars_table[self.current_function]["vars"][param_name] = {
                 "type": self.current_type,
-                "memory_position" : memory.malloc(1, "local", self.current_type)
+                "memory_position" : memory.malloc(1, "local", self.current_type),
+                "dimensions" : 0
             }
 
             # Sumar al contador de variables
