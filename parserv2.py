@@ -776,7 +776,7 @@ def p_np_add_operand(p):
         memory_pos = vars_table.vars_table["global"]["vars"][p[-1]]["memory_position"]
         stack_operands.append(memory_pos)
         stack_types.append(vars_table.vars_table["global"]["vars"][p[-1]]["type"])
-        if vars_table.vars_table["global"]["vars"][p[-1]]["dimensions"] > 0:
+        if vars_table.vars_table["global"]["vars"][p[-1]]["dimensions"] and vars_table.vars_table["global"]["vars"][p[-1]]["dimensions"] > 0:
             stack_current_var.append(p[-1])
         current_var = p[-1]
     # Revisar si el operando existe en memoria local
@@ -784,7 +784,7 @@ def p_np_add_operand(p):
         memory_pos = vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["memory_position"]
         stack_operands.append(memory_pos)
         stack_types.append(vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["type"])
-        if vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["dimensions"] > 0:
+        if vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["dimensions"] and vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["dimensions"] > 0:
             stack_current_var.append(p[-1])
         current_var = p[-1]
     # Mostrar error cuando el operando no existe
