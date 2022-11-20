@@ -29,6 +29,8 @@ called_function = None
 
 # Variables para calculos de arreglos
 current_var = None
+current_array_var = None
+stack_current_var = []
 is_array = False
 is_matrix = False
 R = 1
@@ -604,9 +606,11 @@ def p_np_end_matrix(p):
 
 def p_np_verify_if_array(p):
     'np_verify_if_array :'
-    global current_var
+    global current_var, current_array_var
     stack_operands.pop()
     stack_types.pop()
+
+    current_array_var = stack_current_var[-1]
 
     # Verificar que la var no sea una variable simple
     scope = vars_table.exists(current_var)
@@ -616,32 +620,35 @@ def p_np_verify_if_array(p):
 
 def p_np_verify_if_array_2(p):
     'np_verify_if_array_2 :'
-    global current_var
+    global current_var, current_array_var
 
     # Verificar que la var tenga 1 dimensión
     scope = vars_table.exists(current_var)
     dim = vars_table.vars_table[scope]["vars"][current_var]["dimensions"]
     if dim == 2:
         raise VarsTableException(f"Variable '{current_var}' is not an array")
+    
+    if stack_current_var:
+        stack_current_var.pop()
 
 def p_np_verify_if_matrix(p):
     'np_verify_if_matrix :'
-    global current_var
+    global current_array_var
 
     scope = vars_table.exists(current_var)
-    dim = vars_table.vars_table[scope]["vars"][current_var]["dimensions"]
+    dim = vars_table.vars_table[scope]["vars"][current_array_var]["dimensions"]
     if dim == 0 or dim == 1:
-        raise VarsTableException(f"Variable '{current_var}' is not a matrix")
+        raise VarsTableException(f"Variable '{current_array_var}' is not a matrix")
 
 def p_np_verify_range(p):
     'np_verify_range :'
-    global ip_counter, current_var
+    global ip_counter, current_array_var
 
     scope = vars_table.exists(current_var)
-    dim = vars_table.vars_table[scope]["vars"][current_var]["dimensions"]
+    dim = vars_table.vars_table[scope]["vars"][current_array_var]["dimensions"]
     
     if dim == 1:
-        limit = vars_table.vars_table[scope]["vars"][current_var]["limit_1"]
+        limit = vars_table.vars_table[scope]["vars"][current_array_var]["limit_1"]
         # Obtener memoria de los límites
         low_limit = vars_table.constants_table["int"][0]["memory_position"]
         up_limit = vars_table.constants_table["int"][limit]["memory_position"]
@@ -654,7 +661,7 @@ def p_np_verify_range(p):
         temp_pointer = memory.malloc(1, "local_temp", "pointer")
         vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
         
-        current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
+        current_var_memory = vars_table.vars_table[scope]["vars"][current_array_var]["memory_position"]
         current_operand = stack_operands.pop()
         stack_types.pop()
         
@@ -664,10 +671,10 @@ def p_np_verify_range(p):
         stack_operands.append(temp_pointer)
         stack_types.append("pointer")
     elif dim == 2: 
-        limit = vars_table.vars_table[scope]["vars"][current_var]["limit_1"]
+        limit = vars_table.vars_table[scope]["vars"][current_array_var]["limit_1"]
         up_limit = vars_table.constants_table["int"][limit]["memory_position"]
         
-        limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
+        limit_2 = vars_table.vars_table[scope]["vars"][current_array_var]["limit_2"]
         
         low_limit = vars_table.constants_table["int"][0]["memory_position"]
 
@@ -749,19 +756,23 @@ def p_np_add_write_operator(p):
 
 def p_np_add_operand(p):
     'np_add_operand :'
-    global current_var
+    global current_var, stack_current_var
 
     # Revisar si el operando existe en memoria global
     if p[-1] in vars_table.vars_table["global"]["vars"]:
         memory_pos = vars_table.vars_table["global"]["vars"][p[-1]]["memory_position"]
         stack_operands.append(memory_pos)
         stack_types.append(vars_table.vars_table["global"]["vars"][p[-1]]["type"])
+        if vars_table.vars_table["global"]["vars"][p[-1]]["dimensions"] > 0:
+            stack_current_var.append(p[-1])
         current_var = p[-1]
     # Revisar si el operando existe en memoria local
     elif p[-1] in vars_table.vars_table[vars_table.current_function]["vars"]:
         memory_pos = vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["memory_position"]
         stack_operands.append(memory_pos)
         stack_types.append(vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["type"])
+        if vars_table.vars_table[vars_table.current_function]["vars"][p[-1]]["dimensions"] > 0:
+            stack_current_var.append(p[-1])
         current_var = p[-1]
     # Mostrar error cuando el operando no existe
     else:
