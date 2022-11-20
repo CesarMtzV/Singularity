@@ -584,7 +584,7 @@ def p_np_calculate_r(p):
         }
     
     # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
-    R = R * (limit + 1)
+    R = R * (limit + 1) -1
 
 def p_np_end_array(p):
     'np_end_array :'
@@ -658,13 +658,17 @@ def p_np_verify_range(p):
         vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
         
         current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
+        
+        if current_var_memory not in vars_table.constants_table['int']:
+            vars_table.constants_table['int'][current_var_memory] = {'memory_position' : memory.malloc(1,'constant','int')}
+            
         current_operand = stack_operands.pop()
         stack_types.pop()
         
-        quad_list.append(Quadruple(ip_counter, "+", current_operand, current_var_memory, temp_pointer))
+        quad_list.append(Quadruple(ip_counter, "+", current_operand, vars_table.constants_table['int'][current_var_memory]['memory_position'], temp_pointer))
         ip_counter += 1
 
-        stack_operands.append(temp_pointer)
+        stack_operands.append(f'({temp_pointer})')
         stack_types.append("pointer")
     elif dim == 2: 
         limit = vars_table.vars_table[scope]["vars"][current_var]["limit_1"]

@@ -41,6 +41,9 @@ class MemoryManager:
         self.const_bool         = 19000
         self.const_string       = 20000
         
+        # Memoria pointer
+        self.pointer            = 21000
+        
         self.global_ints = []
         self.global_temp_ints = []
         
@@ -69,9 +72,8 @@ class MemoryManager:
         self.const_floats = []
         self.const_bools = []
         self.const_strings = []
-
-        # Memoria pointer
-        self.pointer            = 21000
+        
+        self.pointers = []
 
     def malloc(self, size :int, scope: str, type :str) -> int:
         """

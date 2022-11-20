@@ -30,7 +30,7 @@ with open("output.sgo") as file:
             right = int(temp[7])
 
         res = temp[9]
-        if res != 'None':
+        if res.isdigit():
             res = int(temp[9])
 
         quad = [operator, left, right, res]
@@ -49,9 +49,20 @@ for type in constants_table:
 
 for var in vars_table['global']['vars']:
     if vars_table['global']['vars'][var]['type'] == 'int':
-        memory.global_ints.append(None)
+        if 'limit_1' in vars_table['global']['vars'][var]:
+            for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])+1):
+                memory.global_ints.append(None)
+        else:
+            memory.global_ints.append(None)
     if vars_table['global']['vars'][var]['type'] == 'float':
-        memory.global_floats.append(None)
+        if 'limit_2' in vars_table['global']['vars'][var]:
+            for i in (0,(vars_table['global']['vars'][var]['limit_1']*vars_table['global']['vars'][var]['limit_2'])):
+                memory.global_floats.append(None)
+        elif 'limit_1' in vars_table['global']['vars'][var]:
+            for i in (0,vars_table['global']['vars'][var]['limit_1']):
+                memory.global_floats.append(None)
+        else:
+            memory.global_floats.append(None)
     if vars_table['global']['vars'][var]['type'] == 'bool':
         memory.global_bools.append(None)
     if vars_table['global']['vars'][var]['type'] == 'string':
@@ -65,8 +76,13 @@ for i in range(0, vars_table['main']['size']['vars_temp']['bool']):
     memory.local_temp_bools.append(None)
 for i in range(0, vars_table['main']['size']['vars_temp']['string']):
     memory.local_temp_strings.append(None)
+for i in range(0, vars_table['main']['size']['vars_temp']['pointer']):
+    memory.pointers.append(None)
 
-def getAddress(addr): 
+def getAddress(addr):
+    addressToString = str(addr)
+    if addressToString[0] == '(' and addressToString[-1] == ')':
+        addr = getAddress(int(addressToString[1:-1]))
     if 1000<=addr<2000:
         if memory.global_ints[addr-1000] == None:
             return
@@ -147,6 +163,11 @@ def getAddress(addr):
         if memory.const_strings[addr-20000] == None:
             return
         return memory.const_strings[addr-20000]
+    elif 21000<=addr<22000:
+        if memory.pointers[addr-21000] == None:
+            return
+        return memory.pointers[addr-21000]
+        
     
 current = 0
 while current < len(quad_list):
@@ -170,8 +191,8 @@ while current < len(quad_list):
             memory.local_temp_ints[res-10000] = getAddress(left) + getAddress(right)
         elif 11000<= res <12000:
             memory.local_floats[res-11000] = getAddress(left) + getAddress(right)
-        elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) + getAddress(right)
+        elif 21000<= res <22000:
+            memory.pointers[res-21000] = getAddress(left) + getAddress(right)
     elif operator == '-':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) - getAddress(right)
@@ -376,6 +397,9 @@ while current < len(quad_list):
         elif 14000<= res <15000:
             memory.local_temp_bools[res-14000] = getAddress(left) != getAddress(right)
     elif operator == '=':
+        resToString = str(res)
+        if resToString[0] == '(' and resToString[-1] == ')':
+            res = getAddress(int(resToString[1:-1]))
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) 
         elif 2000<= res <3000:
@@ -399,7 +423,9 @@ while current < len(quad_list):
         elif 13000<= res <14000:
             memory.local_bools[res-13000] = getAddress(left)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) 
+            memory.local_temp_bools[res-14000] = getAddress(left)
+        elif 21000<= res <22000:
+            memory.pointers[res-21000] = getAddress(left)
     elif operator == 'output':
         print("Output from VM.py")
         print(getAddress(res))
@@ -414,7 +440,6 @@ while current < len(quad_list):
         jump = left
         jumpStack.append(current)
         function_name = jump
-        
         current = vars_table[function_name]['start_position']
         continue
     elif operator == "return":
@@ -471,6 +496,9 @@ while current < len(quad_list):
         current = jumpStack.pop() + 1
         paramStack.pop()
         continue
+    elif operator == "VER":        
+        if getAddress(left) < getAddress(right) or getAddress(left) > getAddress(res):
+            print("index out of bounds")
     
     
     current=current+1
