@@ -718,9 +718,7 @@ def p_np_verify_range_matrix(p):
 
     scope = vars_table.exists(current_var)
     
-    print(current_var)
-
-    limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
+    limit_2 = vars_table.vars_table[scope]["vars"][current_array_var]["limit_2"]
     limit_2_memory = vars_table.constants_table["int"][limit_2]["memory_position"]
 
     low_limit = vars_table.constants_table["int"][0]["memory_position"]

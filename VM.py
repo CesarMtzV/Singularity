@@ -4,10 +4,9 @@ import parserv2
 memory = MemoryManager()
 
 tables = parserv2.run()
-
 constants_table = tables[0]
 vars_table = tables[1]
-num_temps = tables[2]
+
 
 quad_list = []
 function_name = ' '
@@ -53,7 +52,7 @@ for var in vars_table['global']['vars']:
             for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])+1):
                 memory.global_ints.append(None)
         if 'limit_2' in vars_table['global']['vars'][var]:
-            for i in range(0,int(vars_table['global']['vars'][var]['limit_1'])*int(vars_table['global']['vars'][var]['limit_2'])+1):
+            for i in range(0,(int(vars_table['global']['vars'][var]['limit_1'])+1)*(int(vars_table['global']['vars'][var]['limit_2'])+1)):
                 memory.global_ints.append(None)
         else:
             memory.global_ints.append(None)
