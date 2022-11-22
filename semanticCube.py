@@ -336,7 +336,7 @@ class SemanticCube():
                     '-': 'int',
                     '*': 'int',
                     '/': 'int',
-                    '>': 'boo.',
+                    '>': 'bool',
                     '>=': 'bool',
                     '<': 'bool',
                     '<=': 'bool',

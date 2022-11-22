@@ -1308,6 +1308,8 @@ def p_np_goto_main(p):
 def p_np_start_main(p):
     'np_start_main :'
     global ip_counter
+    
+    memory.dealloc()
 
     vars_table.add_function(p[-1], True)
 

@@ -81,6 +81,9 @@ for i in range(0, vars_table['main']['size']['vars_temp']['string']):
     memory.local_temp_strings.append(None)
 for i in range(0, vars_table['main']['size']['vars_temp']['pointer']):
     memory.pointers.append(None)
+    
+memory.resetLocalMemory();
+memory.resetTempMemory();
 
 def getAddress(addr):
     addressToString = str(addr)
@@ -119,37 +122,37 @@ def getAddress(addr):
             return
         return memory.global_temp_strings[addr-8000]
     elif 9000<=addr<10000:
-        if memory.local_ints[addr-9000] == None:
+        if memory.local_ints_stack[-1][addr-9000] == None:
             return
-        return memory.local_ints[addr-9000]
+        return memory.local_ints_stack[-1][addr-9000]
     elif 10000<=addr<11000:
-        if memory.local_temp_ints[addr-10000] == None:
+        if memory.temp_ints_stack[-1][addr-10000] == None:
             return
-        return memory.local_temp_ints[addr-10000]
+        return memory.temp_ints_stack[-1][addr-10000]
     elif 11000<=addr<12000:
-        if memory.local_floats[addr-11000] == None:
+        if memory.local_floats_stack[-1][addr-11000] == None:
             return
-        return memory.local_floats[addr-11000]
+        return memory.local_floats_stack[-1][addr-11000]
     elif 12000<=addr<13000:
-        if memory.local_temp_floats[addr-12000] == None:
+        if memory.temp_floats_stack[-1][addr-12000] == None:
             return
-        return memory.local_temp_floats[addr-12000]
+        return memory.temp_floats_stack[-1][addr-12000]
     elif 13000<=addr<14000:
-        if memory.local_bools[addr-13000] == None:
+        if memory.local_bools_stack[-1][addr-13000] == None:
             return
-        return memory.local_bools[addr-13000]
+        return memory.local_bools_stack[-1][addr-13000]
     elif 14000<=addr<15000:
-        if memory.local_temp_bools[addr-14000] == None:
+        if memory.temp_bools_stack[-1][addr-14000] == None:
             return
-        return memory.local_temp_bools[addr-14000]
+        return memory.temp_bools_stack[-1][addr-14000]
     elif 15000<=addr<16000:
-        if memory.local_strings[addr-15000] == None:
+        if memory.local_strings_stack[-1][addr-15000] == None:
             return
-        return memory.local_strings[addr-15000]
+        return memory.local_strings_stack[-1][addr-15000]
     elif 16000<=addr<17000:
-        if memory.local_temp_strings[addr-16000] == None:
+        if memory.temp_strings_stack[-1][addr-16000] == None:
             return
-        return memory.local_temp_strings[addr-16000]
+        return memory.temp_strings_stack[-1][addr-16000]
     elif 17000<=addr<18000:
         if memory.const_ints[addr-17000] == None:
             return
@@ -167,9 +170,9 @@ def getAddress(addr):
             return
         return memory.const_strings[addr-20000]
     elif 21000<=addr<22000:
-        if memory.pointers[addr-21000] == None:
+        if memory.temp_pointers_stack[-1][addr-21000] == None:
             return
-        return memory.pointers[addr-21000]
+        return memory.temp_pointers_stack[-1][addr-21000]
         
     
 current = 0
@@ -188,14 +191,16 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) + getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) + getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) + getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) + getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) + getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) + getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) + getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) + getAddress(right)
+        elif 12000<= res <13000:
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) + getAddress(right)
         elif 21000<= res <22000:
-            memory.pointers[res-21000] = getAddress(left) + getAddress(right)
+            memory.temp_pointers_stack[-1][res-21000] = getAddress(left) + getAddress(right)
     elif operator == '-':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) - getAddress(right)
@@ -205,16 +210,16 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) - getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) - getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) - getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) - getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) - getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) - getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) - getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) - getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) - getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) - getAddress(right)
         elif 21000<= res <22000:
-            memory.pointers[res-21000] = getAddress(left) - getAddress(right)
+            memory.temp_pointers_stack[-1][res-21000] = getAddress(left) - getAddress(right)
     elif operator == '*':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) * getAddress(right)
@@ -224,16 +229,16 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) * getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) * getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) * getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) * getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) * getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) * getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) * getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) * getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) * getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) * getAddress(right)
         elif 21000<= res <22000:
-            memory.pointers[res-21000] = getAddress(left) * getAddress(right)
+            memory.temp_pointers_stack[-1][res-21000] = getAddress(left) * getAddress(right)
     elif operator == '/':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) / getAddress(right)
@@ -243,16 +248,16 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) / getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) / getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) / getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) / getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) / getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) / getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) / getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) / getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) / getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) / getAddress(right)
         elif 21000<= res <22000:
-            memory.pointers[res-21000] = getAddress(left) / getAddress(right)
+            memory.temp_pointers_stack[-1][res-21000] = getAddress(left) / getAddress(right)
     elif operator == '>':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) > getAddress(right)
@@ -262,18 +267,18 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) > getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) > getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) > getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) > getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) > getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) > getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) > getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) > getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) > getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) > getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) > getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) > getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) > getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) > getAddress(right)
     elif operator == '<':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) < getAddress(right)
@@ -283,18 +288,18 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) < getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) < getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) < getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) < getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) < getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) < getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) < getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) < getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) < getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) < getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) < getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) < getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) < getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) < getAddress(right)
     elif operator == '>=':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) >= getAddress(right)
@@ -304,18 +309,18 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) >= getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) >= getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) >= getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) >= getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) >= getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) >= getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) >= getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) >= getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) >= getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) >= getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) >= getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) >= getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) >= getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) >= getAddress(right)
     elif operator == '<=':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) <= getAddress(right)
@@ -325,18 +330,18 @@ while current < len(quad_list):
             memory.global_floats[res-3000] = getAddress(left) <= getAddress(right)
         elif 4000<= res <5000:
             memory.global_temp_floats[res-4000] = getAddress(left) <= getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) <= getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) <= getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) <= getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) <= getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) <= getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) <= getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) <= getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) <= getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) <= getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) <= getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) <= getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) <= getAddress(right)
     elif operator == '==':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) == getAddress(right)
@@ -350,18 +355,20 @@ while current < len(quad_list):
             memory.global_bools[res-5000] = getAddress(left) == getAddress(right)
         elif 6000<= res <7000:
             memory.global_temp_bools[res-6000] = getAddress(left) == getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) == getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) == getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) == getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) == getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) == getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) == getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) == getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) == getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) == getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) == getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) == getAddress(right)
+            print(left, right, res)
+            print(memory.pointers)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) == getAddress(right)
     elif operator == '!=':
         if 1000<= res <2000:
             memory.global_ints[res-1000] = getAddress(left) != getAddress(right)
@@ -375,36 +382,36 @@ while current < len(quad_list):
             memory.global_bools[res-5000] = getAddress(left) != getAddress(right)
         elif 6000<= res <7000:
             memory.global_temp_bools[res-6000] = getAddress(left) != getAddress(right)
-        elif 9000<= res <1000:
-            memory.local_ints[res-9000] = getAddress(left) != getAddress(right)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left) != getAddress(right)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left) != getAddress(right)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) != getAddress(right)
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left) != getAddress(right)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left) != getAddress(right)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left) != getAddress(right)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) != getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) != getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) != getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) != getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) != getAddress(right)
     elif operator == '&&':
         if 5000<= res <6000:
-            memory.global_bools[res-5000] = getAddress(left) != getAddress(right)
+            memory.global_bools[res-5000] = getAddress(left) and getAddress(right)
         elif 6000<= res <7000:
-            memory.global_temp_bools[res-6000] = getAddress(left) != getAddress(right)
+            memory.global_temp_bools[res-6000] = getAddress(left) and getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) != getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) and getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) != getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) and getAddress(right)
     elif operator == '||':
         if 5000<= res <6000:
-            memory.global_bools[res-5000] = getAddress(left) != getAddress(right)
+            memory.global_bools[res-5000] = getAddress(left) or getAddress(right)
         elif 6000<= res <7000:
-            memory.global_temp_bools[res-6000] = getAddress(left) != getAddress(right)
+            memory.global_temp_bools[res-6000] = getAddress(left) or getAddress(right)
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left) != getAddress(right)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) or getAddress(right)
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left) != getAddress(right)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) or getAddress(right)
     elif operator == '=':
         resToString = str(res)
         if resToString[0] == '(' and resToString[-1] == ')':
@@ -421,20 +428,20 @@ while current < len(quad_list):
             memory.global_bools[res-5000] = getAddress(left) 
         elif 6000<= res <7000:
             memory.global_temp_bools[res-6000] = getAddress(left)
-        elif 9000<= res < 10000:
-            memory.local_ints[res-9000] = getAddress(left)
+        elif 9000<= res <10000:
+            memory.local_ints_stack[-1][res-9000] = getAddress(left)
         elif 10000<= res <11000:
-            memory.local_temp_ints[res-10000] = getAddress(left)
+            memory.temp_ints_stack[-1][res-10000] = getAddress(left) 
         elif 11000<= res <12000:
-            memory.local_floats[res-11000] = getAddress(left)
+            memory.local_floats_stack[-1][res-11000] = getAddress(left)
         elif 12000<= res <13000:
-            memory.local_temp_floats[res-12000] = getAddress(left)
+            memory.temp_floats_stack[-1][res-12000] = getAddress(left) 
         elif 13000<= res <14000:
-            memory.local_bools[res-13000] = getAddress(left)
+            memory.local_bools_stack[-1][res-13000] = getAddress(left) 
         elif 14000<= res <15000:
-            memory.local_temp_bools[res-14000] = getAddress(left)
+            memory.temp_bools_stack[-1][res-14000] = getAddress(left) 
         elif 21000<= res <22000:
-            memory.pointers[res-21000] = getAddress(left)
+            memory.temp_pointers_stack[-1][res-21000] = getAddress(left)
     elif operator == 'output':
         print("Output from VM.py")
         print(getAddress(res))
@@ -446,6 +453,9 @@ while current < len(quad_list):
             current = res
             continue
     elif operator == "GOSUB":
+        memory.resetLocalMemory();
+        memory.resetTempMemory();
+
         jump = left
         jumpStack.append(current)
         function_name = jump
@@ -458,6 +468,23 @@ while current < len(quad_list):
         
         if currentType == 'int':
             memory.global_ints[position-1000] = getAddress(res)
+        if currentType == 'float':
+            memory.global_floats[position-3000] = getAddress(res)
+        if currentType == 'bool':
+            memory.global_bools[position-5000] = getAddress(res)
+        if currentType == 'string':
+            memory.global_strings[position-7000] = getAddress(res)
+            
+        memory.local_ints_stack.pop()
+        memory.local_floats_stack.pop()
+        memory.local_bools_stack.pop()
+        memory.local_strings_stack.pop()
+
+        memory.temp_ints_stack.pop()
+        memory.temp_floats_stack.pop()
+        memory.temp_bools_stack.pop()
+        memory.temp_strings_stack.pop()
+        memory.temp_pointers_stack.pop()
 
         
         current = jumpStack.pop() + 1
@@ -502,6 +529,17 @@ while current < len(quad_list):
             if 7000<= param <8000 or 15000<= param <17000 or 20000<= param <21000:
                 memory.local_strings[vars_table[function_name]['vars'][paramStack[-1][index]]['memory_position']-15000] = getAddress(param)
     elif operator == "ENDFUNC":
+        memory.local_ints_stack.pop()
+        memory.local_floats_stack.pop()
+        memory.local_bools_stack.pop()
+        memory.local_strings_stack.pop()
+
+        memory.temp_ints_stack.pop()
+        memory.temp_floats_stack.pop()
+        memory.temp_bools_stack.pop()
+        memory.temp_strings_stack.pop()
+        memory.temp_pointers_stack.pop()
+        
         current = jumpStack.pop() + 1
         paramStack.pop()
         continue

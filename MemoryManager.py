@@ -74,7 +74,49 @@ class MemoryManager:
         self.const_strings = []
         
         self.pointers = []
+        
+        self.local_ints_stack = []
+        self.local_floats_stack = []
+        self.local_bools_stack = []
+        self.local_strings_stack = []
 
+        self.temp_ints_stack = []
+        self.temp_floats_stack = []
+        self.temp_bools_stack = []
+        self.temp_strings_stack = []
+        self.temp_pointers_stack = [] 
+        
+    
+    def resetLocalMemory(self):
+        self.local_ints_stack.append(self.local_ints)
+        self.local_ints = []
+
+        self.local_floats_stack.append(self.local_floats)
+        self.local_floats = []
+    
+        self.local_bools_stack.append(self.local_bools)
+        self.local_bools = []
+    
+        self.local_strings_stack.append(self.local_strings)
+        self.local_strings = []
+
+    
+    def resetTempMemory(self):
+        self.temp_ints_stack.append(self.local_temp_ints)
+        self.local_temp_ints = []
+        
+        self.temp_floats_stack.append(self.local_temp_floats)
+        self.local_temp_floats = []
+        
+        self.temp_bools_stack.append(self.local_temp_bools)
+        self.local_temp_bools = []
+    
+        self.temp_strings_stack.append(self.local_temp_strings)
+        self.local_temp_strings = []
+        
+        self.temp_pointers_stack.append(self.pointers)
+        self.pointers = []
+        
     def malloc(self, size :int, scope: str, type :str) -> int:
         """
         Retorna un entero que representa la memoria donde esta guardada la variable.
