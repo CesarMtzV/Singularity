@@ -1475,16 +1475,14 @@ def run():
             yacc.parse(data)
             
             # Used for debugging
-            print("Printing from parserv2.py for debugging")
-            pprint(vars_table.vars_table)
-            pprint(vars_table.constants_table)
-            temp = vars_table.constants_table
+            # print("Printing from parserv2.py for debugging")
+            # pprint(vars_table.vars_table)
+            # pprint(vars_table.constants_table)
             
             with open('output.sgo', 'w') as fp:
                 for q in quad_list:
                     fp.write(f"{q}\n")
             print("Parser finished reading the file.")
-            print("Finished printing from parserv2.py")
             print("---------------------------------")
             
             return [vars_table.constants_table,vars_table.vars_table, num_temps]
