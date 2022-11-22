@@ -666,7 +666,7 @@ def p_np_verify_range(p):
         temp_pointer = memory.malloc(1, "local_temp", "pointer")
         vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
         
-        current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
+        current_var_memory = vars_table.vars_table[scope]["vars"][current_array_var]["memory_position"]
         
         if current_var_memory not in vars_table.constants_table['int']:
             vars_table.constants_table['int'][current_var_memory] = {'memory_position' : memory.malloc(1,'constant','int')}
@@ -717,6 +717,8 @@ def p_np_verify_range_matrix(p):
     global ip_counter, current_var
 
     scope = vars_table.exists(current_var)
+    
+    print(current_var)
 
     limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
     limit_2_memory = vars_table.constants_table["int"][limit_2]["memory_position"]

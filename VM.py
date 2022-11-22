@@ -366,8 +366,6 @@ while current < len(quad_list):
         elif 13000<= res <14000:
             memory.local_bools_stack[-1][res-13000] = getAddress(left) == getAddress(right)
         elif 14000<= res <15000:
-            print(left, right, res)
-            print(memory.pointers)
             memory.temp_bools_stack[-1][res-14000] = getAddress(left) == getAddress(right)
     elif operator == '!=':
         if 1000<= res <2000:
