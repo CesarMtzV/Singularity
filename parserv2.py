@@ -12,6 +12,9 @@ vars_table = VariablesTable()
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
 
+num_temps = {'int': 0, 'float': 0, 'bool': 0, 'string': 0, 'pointer': 0} # Local Temps Table
+
+## Se guardan los operadoes como + - * / y los GOTOS GOTOF GOTOV
 stack_operators = []
 stack_operands = []
 stack_types = []
@@ -229,7 +232,7 @@ def p_llamada(t):
         function_type = vars_table.vars_table["global"]["vars"][called_function]["type"]
         function_result = memory.malloc(1, "local_temp", function_type)
 
-        quad_list.append(Quadruple(ip_counter, "=", called_function, None, function_result))
+        quad_list.append(Quadruple(ip_counter, "=", vars_table.vars_table["global"]["vars"][called_function]["memory_position"], None, function_result))
         ip_counter += 1
 
         stack_operands.append(function_result)
@@ -609,19 +612,21 @@ def p_np_calculate_r(p):
         vars_table.vars_table[scope]["vars"][current_var]["limit_1"] = limit - 1
         
         # Guardar el límite en tabla de constantes
-        vars_table.constants_table["int"][limit - 1] = {
-            "memory_position" : memory.malloc(1, "constant", "int")
-        }
+        if limit - 1 not in vars_table.constants_table["int"]:
+            vars_table.constants_table["int"][limit - 1] = {
+                "memory_position" : memory.malloc(1, "constant", "int")
+            }
     elif dim == 2:
         vars_table.vars_table[scope]["vars"][current_var]["limit_2"] = limit - 1
         
         # Guardar el límite en tabla de constantes
-        vars_table.constants_table["int"][limit - 1] = {
-            "memory_position" : memory.malloc(1, "constant", "int")
-        }
+        if limit - 1 not in vars_table.constants_table["int"]:
+            vars_table.constants_table["int"][limit - 1] = {
+                "memory_position" : memory.malloc(1, "constant", "int")
+            }
     
     # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
-    R = R * (limit + 1)
+    R = R * (limit)
 
 def p_np_end_array(p):
     'np_end_array :'
@@ -700,13 +705,17 @@ def p_np_verify_range(p):
         vars_table.vars_table[vars_table.current_function]["size"]["vars_temp"]["pointer"] += 1
         
         current_var_memory = vars_table.vars_table[scope]["vars"][current_array_var]["memory_position"]
+        
+        if current_var_memory not in vars_table.constants_table['int']:
+            vars_table.constants_table['int'][current_var_memory] = {'memory_position' : memory.malloc(1,'constant','int')}
+            
         current_operand = stack_operands.pop()
         stack_types.pop()
         
-        quad_list.append(Quadruple(ip_counter, "+", current_operand, current_var_memory, temp_pointer))
+        quad_list.append(Quadruple(ip_counter, "+", current_operand, vars_table.constants_table['int'][current_var_memory]['memory_position'], temp_pointer))
         ip_counter += 1
 
-        stack_operands.append(temp_pointer)
+        stack_operands.append(f'({temp_pointer})')
         stack_types.append("pointer")
     elif dim == 2: 
         limit = vars_table.vars_table[scope]["vars"][current_array_var]["limit_1"]
@@ -746,8 +755,8 @@ def p_np_verify_range_matrix(p):
     global ip_counter, current_var
 
     scope = vars_table.exists(current_var)
-
-    limit_2 = vars_table.vars_table[scope]["vars"][current_var]["limit_2"]
+    
+    limit_2 = vars_table.vars_table[scope]["vars"][current_array_var]["limit_2"]
     limit_2_memory = vars_table.constants_table["int"][limit_2]["memory_position"]
 
     low_limit = vars_table.constants_table["int"][0]["memory_position"]
@@ -774,10 +783,14 @@ def p_np_verify_range_matrix(p):
 
     # Sumar dirección base de variable
     current_var_memory = vars_table.vars_table[scope]["vars"][current_var]["memory_position"]
-    quad_list.append(Quadruple(ip_counter, "+", temp_2, current_var_memory, pointer))
+    
+    if current_var_memory not in vars_table.constants_table['int']:
+        vars_table.constants_table['int'][current_var_memory] = {'memory_position' : memory.malloc(1,'constant','int')}
+        
+    quad_list.append(Quadruple(ip_counter, "+", temp_2, vars_table.constants_table['int'][current_var_memory]['memory_position'], pointer))
     ip_counter += 1
-
-    stack_operands.append(pointer)
+    
+    stack_operands.append(f'({pointer})')
     stack_types.append("pointer")
 
 def p_np_end_global_scope(p):
@@ -876,7 +889,7 @@ def p_np_add_plusminus(p):
     'np_add_plusminus :'
     global ip_counter
     
-    if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == "-"):
+    if stack_operators and (stack_operators[-1] == '+' or stack_operators[-1] == '-'):
         operator = stack_operators.pop()
         
         right_operand = stack_operands.pop()
@@ -904,6 +917,7 @@ def p_np_add_plusminus(p):
             ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -939,6 +953,7 @@ def p_np_add_multiplydivision(p):
             ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
         
@@ -974,6 +989,7 @@ def p_np_add_conditionals(p):
             ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -1009,6 +1025,7 @@ def p_np_add_and(p):
             ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -1044,6 +1061,7 @@ def p_np_add_or(p):
             ip_counter += 1
             stack_operands.append(result)
             stack_types.append(result_type)
+            num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
 
@@ -1183,6 +1201,8 @@ def p_np_for_1(p):
     # Asignar el valor del iterador a la variable temporal
     quad_list.append(Quadruple(ip_counter, "=", iterator, None, control_temp))
     ip_counter += 1
+    
+    num_temps['int'] += 1
 
 def p_np_for_2(p):
     'np_for_2 :'
@@ -1212,6 +1232,9 @@ def p_np_for_2(p):
     quad_list.append(Quadruple(ip_counter, "GOTOF", condition_temp, None, None))
     ip_counter += 1
     stack_jumps.append(ip_counter - 1)
+    
+    num_temps['int'] += 1
+    num_temps['bool'] += 1
     
 
 def p_np_for_end(p):
@@ -1249,6 +1272,8 @@ def p_np_for_end(p):
     ip_counter += 1
 
     quad_list[gotof].result = ip_counter
+    
+    num_temps['int'] += 1
 
 def p_np_set_function_quad(p):
     'np_set_function_quad :'
@@ -1348,6 +1373,8 @@ def p_np_goto_main(p):
 def p_np_start_main(p):
     'np_start_main :'
     global ip_counter
+    
+    memory.dealloc()
 
     vars_table.add_function(p[-1], True)
 
@@ -1439,7 +1466,7 @@ class ParserException(Exception):
         
 yacc.yacc()
 
-if __name__ == '__main__':
+def run():
     if len(sys.argv) == 2:
         program_file = sys.argv[1]
 
@@ -1448,10 +1475,40 @@ if __name__ == '__main__':
             yacc.parse(data)
             
             # Used for debugging
+            print("Printing from parserv2.py for debugging")
             pprint(vars_table.vars_table)
             pprint(vars_table.constants_table)
+            temp = vars_table.constants_table
             
             with open('output.sgo', 'w') as fp:
                 for q in quad_list:
                     fp.write(f"{q}\n")
             print("Parser finished reading the file.")
+            print("Finished printing from parserv2.py")
+            print("---------------------------------")
+            
+            return [vars_table.constants_table,vars_table.vars_table, num_temps]
+    
+    
+if __name__ == '__main__':
+    
+    if len(sys.argv) == 2:
+        program_file = sys.argv[1]
+
+        with open(sys.argv[1], 'r') as f:
+            data = f.read()
+            yacc.parse(data)
+            
+            # Used for debugging
+            print("Print from parserv2 for debugging")
+            pprint(vars_table.vars_table)
+            pprint(vars_table.constants_table)
+            temp = vars_table.constants_table
+            
+            with open('output.sgo', 'w') as fp:
+                for q in quad_list:
+                    fp.write(f"{q}\n")
+            print("Parser finished reading the file.")
+            print("Finished printing from parserv2")
+            print("---------------------------------")
+            

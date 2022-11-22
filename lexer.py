@@ -19,8 +19,8 @@ reserved = {
     'int': 'INT',
     'float': 'FLOAT',
     'bool': 'BOOL',
-    'false': 'FALSE',
-    'true': 'TRUE',
+    'False': 'FALSE',
+    'True': 'TRUE',
     'string': 'STRING',
     'pi': 'PI',
     'function': 'FUNCTION',
@@ -81,7 +81,7 @@ def t_ID(t):
 def t_VAR_CONST_INT(t):
     r'\-?[0-9]+'
     t.value = int(t.value)    
-    return t
+    return t    
 
 def t_VAR_CONST_FLOAT(t):
     r'\-?[0-9]+\.][0-9]+'
