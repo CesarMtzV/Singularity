@@ -87,7 +87,7 @@ class MemoryManager:
         self.temp_pointers_stack = [] 
         
     
-    def resetLocalMemory(self):
+    def pushLocalMemory(self):
         self.local_ints_stack.append(self.local_ints)
         self.local_ints = []
 
@@ -101,7 +101,7 @@ class MemoryManager:
         self.local_strings = []
 
     
-    def resetTempMemory(self):
+    def pushTempMemory(self):
         self.temp_ints_stack.append(self.local_temp_ints)
         self.local_temp_ints = []
         

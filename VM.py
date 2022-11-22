@@ -81,8 +81,8 @@ for i in range(0, vars_table['main']['size']['vars_temp']['string']):
 for i in range(0, vars_table['main']['size']['vars_temp']['pointer']):
     memory.pointers.append(None)
     
-memory.resetLocalMemory();
-memory.resetTempMemory();
+memory.pushLocalMemory();
+memory.pushTempMemory();
 
 def getAddress(addr):
     addressToString = str(addr)
@@ -450,8 +450,8 @@ while current < len(quad_list):
             current = res
             continue
     elif operator == "GOSUB":
-        memory.resetLocalMemory();
-        memory.resetTempMemory();
+        memory.pushLocalMemory();
+        memory.pushTempMemory();
 
         jump = left
         jumpStack.append(current)
