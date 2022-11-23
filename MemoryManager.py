@@ -273,7 +273,6 @@ class MemoryManager:
                     return assigned_address
 
         elif scope == "constant":
-            # TODO: Revisar si tambien hay que agregar variables temporales para constantes
             if type == "int":
                 if self.const_int < 18000:
                     assigned_address = self.const_int

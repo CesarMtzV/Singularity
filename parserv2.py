@@ -575,12 +575,14 @@ def p_np_add_variable(p):
     R = 1
     vars_table.add_variable(p)
 
+# Agregar memoria a una variable con 0 dimensiones
 def p_np_assign_normal_var_memory(p):
     'np_assign_normal_var_memory :'
     global current_var
     # Variable normal
     vars_table.assign_memory(current_var, 1, 0)
 
+# Agregar una dimensión a la variable actual
 def p_np_is_array(p):
     'np_is_array :'
     global current_var
@@ -593,7 +595,7 @@ def p_np_is_array(p):
             "memory_position" : memory.malloc(1, "constant", "int")
         }
 
-
+# Realizar el cálculo de la R para calculos con arreglos
 def p_np_calculate_r(p):
     'np_calculate_r :'
     global R, current_var
@@ -628,6 +630,7 @@ def p_np_calculate_r(p):
     # Los arreglos comienzan en 0, por lo que omitimos la resta del límite inferior
     R = R * (limit)
 
+# Asignarle la memoria a un arreglo
 def p_np_end_array(p):
     'np_end_array :'
     global current_var
@@ -635,18 +638,20 @@ def p_np_end_array(p):
     # Generar la memoria para el arreglo
     vars_table.assign_memory(current_var, R, 0)
 
+# Agregarle una dimensión a la variable actual
 def p_np_is_matrix(p):
     'np_is_matrix :'
     global current_var
 
     vars_table.add_dimensions(current_var)
 
-
+# Asignarle memoria de matriz a la variable actual
 def p_np_end_matrix(p):
     'np_end_matrix :'
     
     vars_table.assign_memory(current_var, R, 0)
 
+# Revisar si la variable es un arreglo
 def p_np_verify_if_array(p):
     'np_verify_if_array :'
     global current_var, current_array_var
@@ -661,6 +666,7 @@ def p_np_verify_if_array(p):
     if dim == 0:
         raise VarsTableException(f"Variable '{current_var}' is not an array")
 
+# Revisar si la variable es un arreglo (en caso de querer accesarla como una matriz)
 def p_np_verify_if_array_2(p):
     'np_verify_if_array_2 :'
     global current_var, current_array_var
@@ -674,6 +680,7 @@ def p_np_verify_if_array_2(p):
     if stack_current_var:
         stack_current_var.pop()
 
+# Revisar si la variable es una matriz
 def p_np_verify_if_matrix(p):
     'np_verify_if_matrix :'
     global current_array_var
@@ -683,6 +690,7 @@ def p_np_verify_if_matrix(p):
     if dim == 0 or dim == 1:
         raise VarsTableException(f"Variable '{current_array_var}' is not a matrix")
 
+# Creación de cuádruplos para verifica el rango de indexación en arreglos y matrices
 def p_np_verify_range(p):
     'np_verify_range :'
     global ip_counter, current_array_var
@@ -749,7 +757,7 @@ def p_np_verify_range(p):
         stack_operands.append(temp_1)
         stack_types.append("int")
         
-
+# Verificar el rango del segundo índice de una matriz
 def p_np_verify_range_matrix(p):
     'np_verify_range_matrix :'
     global ip_counter, current_var
@@ -793,18 +801,22 @@ def p_np_verify_range_matrix(p):
     stack_operands.append(f'({pointer})')
     stack_types.append("pointer")
 
+# Marcar el final del scope global
 def p_np_end_global_scope(p):
     'np_end_global_scope :'
     vars_table.global_scope = False
-    
+
+# Agregar un operador al stack de operadores
 def p_np_add_operator(p):
     'np_add_operator :'
     stack_operators.append(p[-1])
 
+# Agregar el operador de escritura al stack de operadores
 def p_np_add_write_operator(p):
     'np_add_write_operator :'
     stack_operators.append("output")
 
+# Agregar un operando al stack de operandos
 def p_np_add_operand(p):
     'np_add_operand :'
     global current_var, stack_current_var
@@ -836,6 +848,7 @@ def p_np_add_operand(p):
     else:
         raise VarsTableException(f"The variable \'{p[-1]}\' does not exist")
 
+# Agregar un entero a la tabla de constantes
 def p_np_add_int(p):
     'np_add_int :'
     
@@ -848,6 +861,7 @@ def p_np_add_int(p):
     stack_operands.append(vars_table.constants_table['int'][p[-1]]['memory_position'])
     stack_types.append('int')
 
+# Agregar un flotante a la tabla de constantes
 def p_np_add_float(p):
     'np_add_float :'
     
@@ -859,7 +873,8 @@ def p_np_add_float(p):
 
     stack_operands.append(vars_table.constants_table['float'][p[-1]]['memory_position'])
     stack_types.append('float')
-    
+
+# Agregar un string a la tabla de constantes
 def p_np_add_string(p):
     'np_add_string :'
     
@@ -871,7 +886,8 @@ def p_np_add_string(p):
 
     stack_operands.append(vars_table.constants_table['string'][p[-1]]['memory_position'])
     stack_types.append('string')
-    
+
+# Agregar un bool a la tabla de constantes
 def p_np_add_bool(p):
     'np_add_bool :'
     
@@ -884,7 +900,7 @@ def p_np_add_bool(p):
     stack_operands.append(vars_table.constants_table['bool'][p[-1]]['memory_position'])
     stack_types.append('bool')
     
-    
+# Verificar si existe una suma o resta pendiente para crear el cuádruplo
 def p_np_add_plusminus(p):
     'np_add_plusminus :'
     global ip_counter
@@ -921,6 +937,7 @@ def p_np_add_plusminus(p):
         else:
             raise TypeError("Type Mismatch")
 
+# Verificar si existe una multiplicación o división pendiente para crear el cuádruplo
 def p_np_add_multiplydivision(p):
     'np_add_multiplydivision :'
     global ip_counter
@@ -956,7 +973,8 @@ def p_np_add_multiplydivision(p):
             num_temps[result_type] +=1
         else:
             raise TypeError("Type Mismatch")
-        
+
+# Verificar si existe un operador condicional pendiente para crear el cuádruplo
 def p_np_add_conditionals(p):
     'np_add_conditionals :'
     global ip_counter
@@ -993,6 +1011,7 @@ def p_np_add_conditionals(p):
         else:
             raise TypeError("Type Mismatch")
 
+# Verificar si existe un operador AND pendiente para crear el cuádruplo
 def p_np_add_and(p):
     'np_add_and :'
     global ip_counter
@@ -1029,6 +1048,7 @@ def p_np_add_and(p):
         else:
             raise TypeError("Type Mismatch")
 
+# Verificar si existe un operador OR pendiente para crear el cuádruplo
 def p_np_add_or(p):
     'np_add_or :'
     global ip_counter
@@ -1065,17 +1085,19 @@ def p_np_add_or(p):
         else:
             raise TypeError("Type Mismatch")
 
+# Agregar un fondo falso al stack de operadores
 def p_np_add_fondo_falso(p):
     'np_add_fondo_falso :'
 
     stack_operators.append("(")
 
+# Remover el fondo falso del stack de operadores
 def p_np_remove_fondo_falso(p):
     'np_remove_fondo_falso :'
 
     stack_operators.pop()
 
-
+# Generar el cuádruplo de escritura
 def p_np_generate_write_quad(p):
     'np_generate_write_quad :'
     global ip_counter
@@ -1086,6 +1108,7 @@ def p_np_generate_write_quad(p):
     quad_list.append(Quadruple(ip_counter, operator, None, None, operand))
     ip_counter += 1
 
+# Crear el cuádruplo de código de operación GOTOF
 def p_np_condicion_gotof(p):
     'np_condicion_gotof :'
     global ip_counter
@@ -1101,6 +1124,7 @@ def p_np_condicion_gotof(p):
 
         stack_jumps.append(ip_counter - 1)
 
+# Crear el cuádruplo de código de operación GOTO en la condición ELSE
 def p_np_goto_else(p):
     'np_goto_else :'
     global ip_counter
@@ -1113,6 +1137,7 @@ def p_np_goto_else(p):
 
     quad_list[false].result = ip_counter
 
+# Marcar la dirección del salto pendiente
 def p_np_end_condition(p):
     'np_end_condition :'
     global ip_counter
@@ -1121,12 +1146,14 @@ def p_np_end_condition(p):
 
     quad_list[end].result = ip_counter
 
+# Agregar al stack de salto el inicio del ciclo WHILE
 def p_np_while_1(p):
     'np_while_1 :'
     global ip_counter
 
     stack_jumps.append(ip_counter)
 
+# Crear el cuádruplo GOTOF si la condición del WHILE falla
 def p_np_while_2(p):
     'np_while_2 :'
     global ip_counter
@@ -1142,6 +1169,7 @@ def p_np_while_2(p):
 
         stack_jumps.append(ip_counter - 1)
 
+# Crear el GOTO al inicio del WHILE
 def p_np_while_3(p):
     'np_while_3 :'
     global ip_counter
@@ -1154,6 +1182,7 @@ def p_np_while_3(p):
 
     quad_list[end].result = ip_counter
 
+# Revisar que la variable iterador existe y sea tipo entera. Agregar el 1 a la tabla de constantes
 def p_np_for_check_id(p):
     'np_for_check_id :'
     # La variable que se usará como iterador
@@ -1173,6 +1202,7 @@ def p_np_for_check_id(p):
             "memory_position" : memory.malloc(1, "constant", "int")
         }
 
+# Agregar el límite inferior del for y asignar valores
 def p_np_for_1(p):
     'np_for_1 :'
     global ip_counter
@@ -1204,6 +1234,7 @@ def p_np_for_1(p):
     
     num_temps['int'] += 1
 
+# Agregar el límite superior del for y asignar valores
 def p_np_for_2(p):
     'np_for_2 :'
     global ip_counter
@@ -1236,7 +1267,7 @@ def p_np_for_2(p):
     num_temps['int'] += 1
     num_temps['bool'] += 1
     
-
+# Sumar 1 a la variable de control y regresar a la condición del FOR
 def p_np_for_end(p):
     'np_for_end :'
     global ip_counter
@@ -1275,18 +1306,21 @@ def p_np_for_end(p):
     
     num_temps['int'] += 1
 
+# Guardar en el directorio de funciones el cuádruplo de inicio de la función
 def p_np_set_function_quad(p):
     'np_set_function_quad :'
     global ip_counter
 
     vars_table.vars_table[vars_table.current_function]["start_position"] = ip_counter
 
+# Marcar la función como no VOID
 def p_np_reset_is_void(p):
     'np_reset_is_void :'
     global is_void_function
 
     is_void_function = False
 
+# Agregar el cuádruplo de ENDFUNC al final de la función
 def p_np_end_function(p):
     'np_end_function :'
     global ip_counter, param_counter
@@ -1300,6 +1334,7 @@ def p_np_end_function(p):
     # Reiniciar la Function Signature
     vars_table.function_signature = []
 
+# Revisar si una función tipo tiene un estatuto RETURn
 def p_np_check_return(p):
     'np_check_return :'
     global has_return_stmt
@@ -1307,6 +1342,7 @@ def p_np_check_return(p):
     if not has_return_stmt:
         raise VarsTableException(f"Missing RETURN statement for function '{vars_table.current_function}'")
 
+# Revisar que la función que se quiere invocar existe
 def p_np_check_function_name(p):
     'np_check_function_name :'
     global ip_counter, called_function
@@ -1320,6 +1356,7 @@ def p_np_check_function_name(p):
     quad_list.append(Quadruple(ip_counter, "ERA", called_function, None, None))
     ip_counter += 1
 
+# Reviar sintaxis y coherencia de argumentos de la función
 def p_np_check_param(p):
     'np_check_param :'
     global param_counter, ip_counter, called_function
@@ -1344,12 +1381,14 @@ def p_np_check_param(p):
     quad_list.append(Quadruple(ip_counter, "PARAMETER", argument, None, param_counter + 1))
     ip_counter += 1
 
+# Incrementar el contador de parámetros
 def p_np_increase_param_counter(p):
     'np_increase_param_counter :'
     global param_counter
 
     param_counter += 1
 
+# Revisar el número de argumentos de la función
 def p_np_check_last_param(p):
     'np_check_last_param :'
     global param_counter, called_function
@@ -1359,6 +1398,7 @@ def p_np_check_last_param(p):
     if param_counter > number_of_params or param_counter < number_of_params:
         raise VarsTableException(f"Incorrect number of arguments for function '{called_function}'")
 
+# Crear el cuádruplo GOTO MAIN y guardar la posición de regreso
 def p_np_goto_main(p):
     'np_goto_main :'
     global ip_counter
@@ -1370,6 +1410,7 @@ def p_np_goto_main(p):
     quad_list.append(Quadruple(ip_counter, "GOTO", None, None, None))
     ip_counter += 1
 
+# Obtener la dirección de inicio del MAIN y substituirla en el primer GOTO
 def p_np_start_main(p):
     'np_start_main :'
     global ip_counter
@@ -1382,6 +1423,7 @@ def p_np_start_main(p):
 
     quad_list[return_addr].result = ip_counter
 
+# Agregar una clase al directorio de funciones
 def p_np_add_class(p):
     'np_add_class :'
     global is_class
@@ -1390,6 +1432,7 @@ def p_np_add_class(p):
     is_class = True
     vars_table.add_class(class_name)
 
+# Agregar un atributo a la clase actual
 def p_np_add_attribute(p):
     'np_add_attribute :'
 
@@ -1397,6 +1440,7 @@ def p_np_add_attribute(p):
 
     vars_table.add_attribute(attribute_name)
 
+# Revisar que el constructor tenga el mismo nombre que la clase
 def p_np_check_class_name(p):
     'np_check_class_name :'
 
@@ -1405,12 +1449,14 @@ def p_np_check_class_name(p):
     if constructor_name not in vars_table.vars_table:
         raise VarsTableException(f"Constructor '{constructor_name}' must be the same as '{vars_table.current_class}'")
 
+# Agregar un tipo del constructor a un constructor temporal
 def p_np_add_constructor_param(p):
     'np_add_constructor_param :'
     global temp_constructor_signature
 
     temp_constructor_signature.append(vars_table.current_type)
 
+# Revisar que el constructor tenga la misma firma declarada por el orden de los atributos
 def p_np_check_constructor_signature(p):
     'np_check_constructor_signature :'
 
@@ -1419,33 +1465,39 @@ def p_np_check_constructor_signature(p):
     if temp_constructor_signature != constructor_signature:
         raise ParserException(f"Constructor for class '{vars_table.current_class}' does not match the declared attributes. \nExpected {constructor_signature} but received {temp_constructor_signature}")
 
+# Agregar un método void a la clase actual
 def p_np_add_void_method(p):
     'np_add_void_method :'
-    global is_void_function
+    global is_void_method
     
     method_name = p[-1]
 
     vars_table.add_method(method_name, True)
     is_void_function = True
 
+# Agregar un método con retorno a la clase actual
 def p_np_add_method(p):
     'np_add_method :'
+    global is_void_method
 
     method_name = p[-1]
     vars_table.add_method(method_name, False)
     is_void_method = False
 
+# Agregar un parámetro al método actual
 def p_np_add_method_param(p):
     'np_add_method_param :'
 
     vars_table.add_method_parameters(p[-1])
 
+# Indicar el inicio del método
 def p_np_set_method_start_quad(p):
     'np_set_method_start_quad :'
     global ip_counter
 
     vars_table.vars_table[vars_table.current_class]["methods"][vars_table.current_method]["start_position"] = ip_counter
 
+# Crear el cuádruplo con código de operación ENDMETH
 def p_np_end_method(p):
     'np_end_method :'
     global ip_counter
@@ -1459,6 +1511,7 @@ def p_np_end_method(p):
     # Reiniciar la Method Signature
     vars_table.method_signature = []
 
+# Clase usada para errores detectados en el Parser
 class ParserException(Exception):
     """Clase personalizada para los tipos de errores en el parser"""
 
