@@ -1,5 +1,6 @@
 from MemoryManager import MemoryManager
 import parserv2
+import sys
 
 memory = MemoryManager()
 
@@ -442,6 +443,41 @@ while current < len(quad_list):
     elif operator == 'output':
         print("Output from VM.py")
         print(getAddress(res))
+    elif operator == 'input':
+        aux = input()
+
+        if 1000<= res <2000:
+            try:
+                ans = int(aux)
+                memory.global_ints[res-1000] = ans 
+            except ValueError:
+                print("Type error")
+                sys.exit()
+        elif 3000<= res <4000:
+            try:
+                ans = float(aux)
+                memory.global_floats[res-3000] = ans 
+            except ValueError:
+                print("Type error")
+                sys.exit()
+        elif 7000<= res <8000:
+            memory.global_strings = aux
+        elif 9000<= res <10000:
+            try:
+                ans = int(aux)
+                memory.local_ints_stack[-1][res-9000] = ans 
+            except ValueError:
+                print("Type error")
+                sys.exit()
+        elif 11000<= res <12000:
+            try:
+                ans = float(aux)
+                memory.local_floats_stack[-1][res-11000] = ans
+            except ValueError:
+                print("Type error")
+                sys.exit()
+        
+        
     elif operator == 'GOTO':
         current = res
         continue
