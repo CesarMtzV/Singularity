@@ -15,6 +15,7 @@ quad_list = []
 jumpStack = []
 paramList = []
 paramStack = []
+funcStack = []
 function_name = ' '
 
 #Comienza el ciclo que itera sobre el archivo 'output.sgo' y guarda los cuadruplos en quad_list
@@ -566,11 +567,15 @@ while current < len(quad_list):
         #guardamos el salto
         current = jumpStack.pop() + 1
         paramStack.pop()
+        if len(funcStack) > 1:
+            funcStack.pop()
+            function_name=funcStack.pop()
         continue
     #Revisamos si el código de operación es un ERA
     elif operator == "ERA":
         #guardamos el nombre de la función
         function_name = left;
+        funcStack.append(function_name)
         
         #Inicializamos la memoria local según la función que estamos recibiendo
         for i in range (0,vars_table[function_name]['size']['vars']['int']):
@@ -631,6 +636,9 @@ while current < len(quad_list):
         #guardamos el salto
         current = jumpStack.pop() + 1
         paramStack.pop()
+        if len(funcStack) > 1:
+            funcStack.pop()
+            function_name=funcStack.pop()
         continue
     #Revisamos si el código de operación es un VER
     elif operator == "VER":

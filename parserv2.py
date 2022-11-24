@@ -1541,7 +1541,7 @@ def run():
             
             # Used for debugging
             # print("Printing from parserv2.py for debugging")
-            # pprint(vars_table.vars_table)
+            pprint(vars_table.vars_table)
             # pprint(vars_table.constants_table)
             
             with open('output.sgo', 'w') as fp:
