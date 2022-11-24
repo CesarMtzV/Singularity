@@ -11,6 +11,7 @@ from MemoryManager import MemoryManager
 vars_table = VariablesTable()
 semantic_cube = SemanticCube().semantic_cube 
 memory = MemoryManager()
+debug_mode = False
 
 num_temps = {'int': 0, 'float': 0, 'bool': 0, 'string': 0, 'pointer': 0} # Local Temps Table
 
@@ -665,6 +666,8 @@ def p_np_verify_if_array(p):
     dim = vars_table.vars_table[scope]["vars"][current_var]["dimensions"]
     if dim == 0:
         raise VarsTableException(f"Variable '{current_var}' is not an array")
+    
+    stack_operators.append("(")
 
 # Revisar si la variable es un arreglo (en caso de querer accesarla como una matriz)
 def p_np_verify_if_array_2(p):
@@ -679,6 +682,7 @@ def p_np_verify_if_array_2(p):
     
     if stack_current_var:
         stack_current_var.pop()
+        stack_operators.pop()
 
 # Revisar si la variable es una matriz
 def p_np_verify_if_matrix(p):
@@ -800,6 +804,9 @@ def p_np_verify_range_matrix(p):
     
     stack_operands.append(f'({pointer})')
     stack_types.append("pointer")
+    stack_operators.pop()
+    if debug_mode:
+        quad_list.append(f"Finished RANGE MATRIX for {current_var}\n")
 
 # Marcar el final del scope global
 def p_np_end_global_scope(p):
@@ -1356,6 +1363,8 @@ def p_np_check_function_name(p):
     quad_list.append(Quadruple(ip_counter, "ERA", called_function, None, None))
     ip_counter += 1
 
+    stack_operators.append("(")
+
 # Reviar sintaxis y coherencia de argumentos de la función
 def p_np_check_param(p):
     'np_check_param :'
@@ -1380,6 +1389,9 @@ def p_np_check_param(p):
     # Generar código de operacion PARAMETER
     quad_list.append(Quadruple(ip_counter, "PARAMETER", argument, None, param_counter + 1))
     ip_counter += 1
+
+    # Remover fondo falso
+    stack_operators.pop()
 
 # Incrementar el contador de parámetros
 def p_np_increase_param_counter(p):
@@ -1543,8 +1555,12 @@ def run():
     
 if __name__ == '__main__':
     
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 2 or len(sys.argv) == 3:
         program_file = sys.argv[1]
+
+        if len(sys.argv) == 3:
+            if sys.argv[2] == "-d":
+                debug_mode = True
 
         with open(sys.argv[1], 'r') as f:
             data = f.read()

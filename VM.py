@@ -31,7 +31,7 @@ with open("output.sgo") as file:
             left = int(temp[5])
             
         right = temp[7]
-        if right != 'None':
+        if right.isdigit():
             right = int(temp[7])
 
         res = temp[9]
@@ -640,17 +640,3 @@ while current < len(quad_list):
     
     #sumamos uno al contador del while para seguir iterando por los cuadruplos
     current=current+1
-            
-            
-                
-                 
-                
-            
-        
-
-        
-
-    
-    
-        
-
